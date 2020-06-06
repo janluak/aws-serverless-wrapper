@@ -29,7 +29,7 @@ class TestSchemaLoadingFromFile(TestSchemaLoading):
     def test_load_basic_schema(self):
         from aws_serverless_wrapper.schema_validation.schema_validator import get_schema
 
-        schema_file = "test_data/schema_basic.json"
+        schema_file = "test_data/database/schema_basic.json"
 
         expected_schema = load_single(schema_file)
 

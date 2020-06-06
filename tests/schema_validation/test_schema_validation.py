@@ -24,9 +24,9 @@ class TestSchemaValidation(TestCase):
     def test_basic_schema(self):
         from aws_serverless_wrapper.schema_validation import get_validator
 
-        test_item = load_single("test_data/item_basic.json")
+        test_item = load_single("test_data/database/item_basic.json")
 
-        schema_file = dirname(realpath(__file__)) + "/test_data/schema_basic.json"
+        schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_basic.json"
         validator = get_validator(schema_file)
 
         validator.validate(test_item)
@@ -34,9 +34,9 @@ class TestSchemaValidation(TestCase):
     def test_basic_schema_wrong_data(self):
         from aws_serverless_wrapper.schema_validation import get_validator
 
-        test_item = load_single("test_data/item_basic_wrong.json")
+        test_item = load_single("test_data/database/item_basic_wrong.json")
 
-        schema_file = dirname(realpath(__file__)) + "/test_data/schema_basic.json"
+        schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_basic.json"
         validator = get_validator(schema_file)
 
         try:
@@ -48,9 +48,9 @@ class TestSchemaValidation(TestCase):
     def test_nested_schema(self):
         from aws_serverless_wrapper.schema_validation import get_validator
 
-        test_item = load_single("test_data/item_nested.json")
+        test_item = load_single("test_data/database/item_nested.json")
 
-        schema_file = dirname(realpath(__file__)) + "/test_data/schema_nested.json"
+        schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_nested.json"
         validator = get_validator(schema_file)
 
         validator.validate(test_item)

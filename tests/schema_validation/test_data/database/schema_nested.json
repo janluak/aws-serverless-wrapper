@@ -55,7 +55,7 @@
       "description": "contains a list",
       "type": "array",
       "items": {
-        "$ref": "./schema_nested_array_child.json"
+        "$ref": "schema_nested_array_child.json"
       }
     }
   },
