@@ -12,6 +12,7 @@ class TestSchemaValidation(TestCase):
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
         os_environ["UnitTest"] = "True"
+        os_environ["WRAPPER_DATABASE"] = "DynamoDB"
 
     @classmethod
     def tearDownClass(cls) -> None:
