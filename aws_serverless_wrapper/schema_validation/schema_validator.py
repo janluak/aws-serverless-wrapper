@@ -19,8 +19,6 @@ def __resolver(directory):
 
 
 def get_schema(directory: str) -> dict:
-    from os import getcwd
-    print(getcwd())
     if "://" not in directory:
         if ".json" != directory[-5:]:
             directory += ".json"
@@ -57,7 +55,7 @@ def check_if_data_type_is_allowed(data, json_type, enum=False):
         if data not in enum:
             raise TypeError
     else:
-        if not hasattr(json_type, "__iter__"):
+        if not isinstance(json_type, (list, tuple)):
             json_type = [json_type]
 
         for type_entry in json_type:
