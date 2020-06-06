@@ -13,6 +13,8 @@ class TestSchemaLoading(TestCase):
 
 
 class TestSchemaLoadingFromFile(TestSchemaLoading):
+    actual_cwd = str()
+
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
