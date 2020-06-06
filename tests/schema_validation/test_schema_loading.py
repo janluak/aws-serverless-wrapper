@@ -1,0 +1,37 @@
+from unittest import TestCase
+from os import environ as os_environ
+from os.path import dirname, realpath
+from os import chdir, getcwd
+from datesy.file_IO.json_file import load_single
+
+
+class TestSchemaLoading(TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        os_environ["UnitTest"] = "True"
+
+
+class TestSchemaLoadingFromFile(TestSchemaLoading):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.actual_cwd = getcwd()
+        chdir(dirname(realpath(__file__)))
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        chdir(cls.actual_cwd)
+
+    def test_load_basic_schema(self):
+        from aws_serverless_wrapper.schema_validation import get_schema
+
+        schema_file = "test_data/schema_basic.json"
+
+        expected_schema = load_single(schema_file)
+
+        loaded_schema = get_schema(schema_file)
+        self.assertEqual(expected_schema, loaded_schema)
+
+
+class TestSchemaLoadingFromURL(TestSchemaLoading):
+    pass

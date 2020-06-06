@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://url.com/schema_nested_array_child.json",
+  "title": "Nested Schema Array Child",
+  "description": "nested child schema: array items",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "KEY1": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "subKEY1": {
+          "type": "string"
+        },
+        "subKEY2": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}
