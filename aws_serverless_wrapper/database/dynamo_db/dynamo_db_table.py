@@ -2,7 +2,7 @@ from aws_serverless_wrapper.schema_validation import (
     get_schema, get_validator
 )
 from jsonschema.exceptions import ValidationError
-from .traverse_dict import *
+from aws_serverless_wrapper._helper.traverse_dict import *
 from boto3 import resource
 from copy import deepcopy
 from inspect import stack
