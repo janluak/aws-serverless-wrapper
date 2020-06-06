@@ -9,7 +9,7 @@ _json_schema_2_dynamo_db_type_switch = {
     "object": "M",
     "boolean": "BOOL",
     "number": "N",
-    "integer": "N"
+    "integer": "N",
 }
 
 
@@ -42,7 +42,11 @@ def _parse_json_schema_2_dynamo_db_schema(json_schema):
 def create_dynamo_db_table_from_schema(json_schema, include_stage_in_table_name=True):
     from .resource_config import resource_config
 
-    table_name, attribute_definitions, key_schemas = _parse_json_schema_2_dynamo_db_schema(json_schema)
+    (
+        table_name,
+        attribute_definitions,
+        key_schemas,
+    ) = _parse_json_schema_2_dynamo_db_schema(json_schema)
 
     if include_stage_in_table_name:
         table_name = f"{os_environ['STAGE']}-{table_name}"

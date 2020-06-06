@@ -4,5 +4,5 @@ json_to_python_type_switch = {
     "string": str,
     "object": dict,
     "number": float,
-    "integer": int
+    "integer": int,
 }

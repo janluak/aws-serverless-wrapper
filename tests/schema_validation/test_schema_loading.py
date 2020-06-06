@@ -10,6 +10,7 @@ class TestSchemaLoading(TestCase):
     def setUpClass(cls) -> None:
         os_environ["UnitTest"] = "True"
         os_environ["WRAPPER_DATABASE"] = "DynamoDB"
+        os_environ["AWS_REGION"] = "local"
 
 
 class TestSchemaLoadingFromFile(TestSchemaLoading):
@@ -26,7 +27,7 @@ class TestSchemaLoadingFromFile(TestSchemaLoading):
         chdir(cls.actual_cwd)
 
     def test_load_basic_schema(self):
-        from aws_serverless_wrapper.schema_validation import get_schema
+        from aws_serverless_wrapper.schema_validation.schema_validator import get_schema
 
         schema_file = "test_data/schema_basic.json"
 

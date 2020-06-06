@@ -99,12 +99,11 @@ class TestDynamoDB(TestDynamoDBBase):
         from aws_serverless_wrapper.database import create_dynamo_db_table_from_schema
 
         create_dynamo_db_table_from_schema(
-            load_single(
-                f"test_data/tables/{cls.table_name}.json"
-            )
+            load_single(f"test_data/tables/{cls.table_name}.json")
         )
 
         from aws_serverless_wrapper.database import Table
+
         t = Table(cls.table_name)
         t.truncate()
 
@@ -172,8 +171,7 @@ class TestDynamoDB(TestDynamoDBBase):
                 "body": f"'some_string' is a required property for table {self.table_name} and is missing",
                 "headers": {"Content-Type": "text/plain"},
             },
-
-            TE.exception.args[0]
+            TE.exception.args[0],
         )
 
     def test_put_get_and_delete_item(self):
@@ -196,9 +194,9 @@ class TestDynamoDB(TestDynamoDBBase):
             {
                 "statusCode": 404,
                 "body": f"{test_item_primary} not found in {self.table_name}",
-                "headers": {"Content-Type": "text/plain"}
+                "headers": {"Content-Type": "text/plain"},
             },
-            FNF.exception.args[0]
+            FNF.exception.args[0],
         )
 
     def test_doubled_put_item_with_same_primary(self):
@@ -266,8 +264,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t.update_attribute(test_item_primary, **updated_attribute)
 
         self.assertEqual(
-            updated_attribute["some_float"],
-            t.get(**test_item_primary)["some_float"],
+            updated_attribute["some_float"], t.get(**test_item_primary)["some_float"],
         )
 
         t.delete(**test_item_primary)
@@ -289,7 +286,7 @@ class TestDynamoDB(TestDynamoDBBase):
             {
                 "statusCode": 415,
                 "body": f"Wrong value type in {t.name} for key=some_string:\n"
-                        f"False is not of type 'string'."
+                f"False is not of type 'string'."
                 f"\nenum: ['abcdef', 'ghijkl', 'NewBee']",
                 "headers": {"Content-Type": "text/plain"},
             },

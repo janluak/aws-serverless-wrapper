@@ -20,5 +20,7 @@ def delete_keys_in_nested_dict(nested, dict_keys_to_delete):
             if key in dict_keys_to_delete:
                 del nested[key]
             else:
-                nested[key] = delete_keys_in_nested_dict(nested[key], dict_keys_to_delete)
+                nested[key] = delete_keys_in_nested_dict(
+                    nested[key], dict_keys_to_delete
+                )
     return nested

@@ -6,7 +6,12 @@ from aws_serverless_wrapper._helper import delete_keys_in_nested_dict
 
 __current_validator = Draft7Validator
 
-__all__ = ["get_schema", "get_validator", "verify_data", "check_if_data_type_is_allowed"]
+__all__ = [
+    "get_schema",
+    "get_validator",
+    "verify_data",
+    "check_if_data_type_is_allowed",
+]
 
 
 def __resolver(directory):
@@ -14,9 +19,7 @@ def __resolver(directory):
 
     relative_directory = f"file://{absolute_directory}/"
 
-    return RefResolver(
-        relative_directory, None
-    )
+    return RefResolver(relative_directory, None)
 
 
 def get_schema(directory: str) -> dict:

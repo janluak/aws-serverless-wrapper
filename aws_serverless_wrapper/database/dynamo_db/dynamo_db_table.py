@@ -1,6 +1,4 @@
-from aws_serverless_wrapper.schema_validation import (
-    get_schema, get_validator
-)
+from aws_serverless_wrapper.schema_validation import get_schema, get_validator
 from jsonschema.exceptions import ValidationError
 from aws_serverless_wrapper._helper.traverse_dict import *
 from boto3 import resource
@@ -32,8 +30,8 @@ class CustomExceptionRaiser:
             {
                 "statusCode": 400,
                 "body": f"Wrong primary for {self.table.name}: "
-                        f"required for table is {self.table.pk}; {provided_message}",
-                "headers": {"Content-Type": "text/plain"}
+                f"required for table is {self.table.pk}; {provided_message}",
+                "headers": {"Content-Type": "text/plain"},
             }
         )
 
@@ -48,10 +46,10 @@ class CustomExceptionRaiser:
             response = {
                 "statusCode": 415,
                 "body": f"Wrong value type in {self.table.name} for key={'/'.join(error.absolute_path)}:\n"
-                        f"{error.message}.",
+                f"{error.message}.",
                 "headers": {"Content-Type": "text/plain"},
             }
-            if 'enum' in error.schema and error.schema['enum']:
+            if "enum" in error.schema and error.schema["enum"]:
                 response["body"] += f"\nenum: {error.schema['enum']}"
         elif error.validator == "required":
             response = {
@@ -60,13 +58,9 @@ class CustomExceptionRaiser:
                 "headers": {"Content-Type": "text/plain"},
             }
         else:
-            response = {
-                "statusCode": 500
-            }
+            response = {"statusCode": 500}
 
-        raise TypeError(
-            response
-        )
+        raise TypeError(response)
 
     def item_already_existing(self, item):
         item = deepcopy(item)
@@ -88,7 +82,9 @@ class Table:
         schema_directory = os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"]
         self.__schema = get_schema(schema_directory + self.__table_name)
         self.__validator = get_validator(schema_directory + self.__table_name)
-        self.__validator_update = get_validator(schema_directory + self.__table_name, non_required=True)
+        self.__validator_update = get_validator(
+            schema_directory + self.__table_name, non_required=True
+        )
 
     @property
     def name(self):
@@ -242,8 +238,8 @@ class Table:
 
         except Exception as e:
             if (
-                    e.__dict__["response"]["Error"]["Code"]
-                    == "ConditionalCheckFailedException"
+                e.__dict__["response"]["Error"]["Code"]
+                == "ConditionalCheckFailedException"
             ):
                 self.__error_messages.item_already_existing(item)
             else:
