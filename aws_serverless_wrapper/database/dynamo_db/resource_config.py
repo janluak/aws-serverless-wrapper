@@ -1,7 +1,6 @@
 from os import environ as os_environ
 
 __all__ = ["resource_config"]
-__db_aws_region = "eu-central-1"
 
 
 def craft_config():
@@ -18,7 +17,7 @@ def craft_config():
             "aws_access_key_id": "dummy",
             "aws_secret_access_key": "dummy",
         },
-        "cloud": {"region_name": __db_aws_region},
+        "cloud": {"region_name": os_environ["AWS_REGION"]},
     }
 
     if "AWS_SAM_LOCAL" in os_environ:
