@@ -2,6 +2,7 @@ from .json_to_python_type import json_to_python_type_switch
 from json import load as json_load
 from jsonschema.validators import Draft7Validator, RefResolver
 from os.path import dirname, realpath
+from aws_serverless_wrapper._helper import delete_keys_in_nested_dict
 
 __current_validator = Draft7Validator
 
@@ -28,8 +29,10 @@ def get_schema(directory: str) -> dict:
         raise NotImplementedError
 
 
-def get_validator(directory):
+def get_validator(directory, non_required=False):
     schema = get_schema(directory)
+    if non_required:
+        delete_keys_in_nested_dict(schema, "required")
     return __current_validator(schema, resolver=__resolver(directory))
 
 
