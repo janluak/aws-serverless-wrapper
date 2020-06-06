@@ -16,6 +16,7 @@ class TestDynamoDBBase(TestCase):
     def setUpClass(cls) -> None:
         os_environ["STAGE"] = "TEST"
         os_environ["UnitTest"] = "True"
+        os_environ["AWS_REGION"] = "local"
         os_environ["WRAPPER_DATABASE"] = "DynamoDB"
         os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] = "test_data/tables/"
 
