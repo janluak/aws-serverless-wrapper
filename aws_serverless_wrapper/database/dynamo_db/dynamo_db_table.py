@@ -7,7 +7,7 @@ from boto3 import resource
 from copy import deepcopy
 from inspect import stack
 from os import environ as os_environ
-from KaHaWa_DatabaseIO.resource_config_crafter import resource_config
+from aws_serverless_wrapper.database.dynamo_db.resource_config import resource_config
 
 dynamo_db_resource = resource("dynamodb", **resource_config)
 
