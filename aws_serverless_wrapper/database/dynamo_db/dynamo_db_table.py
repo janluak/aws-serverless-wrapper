@@ -1,10 +1,10 @@
 from aws_serverless_wrapper.schema_validation import SchemaValidator
 from jsonschema.exceptions import ValidationError
 from aws_serverless_wrapper._helper.traverse_dict import *
+from aws_serverless_wrapper._helper import environ
 from boto3 import resource
 from copy import deepcopy
 from inspect import stack
-from os import environ as os_environ
 from aws_serverless_wrapper.database.dynamo_db.resource_config import resource_config
 
 dynamo_db_resource = resource("dynamodb", **resource_config)
@@ -77,12 +77,12 @@ class Table:
     def __init__(self, table_name):
         self.__table_name = table_name
         self.__error_messages = CustomExceptionRaiser(self)
-        self.__table = dynamo_db_resource.Table(f"{os_environ['STAGE']}-{table_name}")
+        self.__table = dynamo_db_resource.Table(f"{environ['STAGE']}-{table_name}")
 
         self.__schema_validator = SchemaValidator(
             **{
-                os_environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"].lower():
-                    os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] + self.__table_name
+                environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"].lower():
+                    environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] + self.__table_name
             }
         )
 
@@ -132,7 +132,7 @@ class Table:
 
         dynamo_db_client = client("dynamodb", **resource_config)
         response = dynamo_db_client.describe_table(
-            TableName=f"{os_environ['STAGE']}-{self.name}"
+            TableName=f"{environ['STAGE']}-{self.name}"
         )
         return response
 

@@ -9,8 +9,6 @@ class TestSchemaLoading(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         os_environ["UnitTest"] = "True"
-        os_environ["WRAPPER_DATABASE"] = "DynamoDB"
-        os_environ["AWS_REGION"] = "local"
 
 
 class TestSchemaLoadingFromFile(TestSchemaLoading):

@@ -1,4 +1,4 @@
-from os import environ as os_environ
+from aws_serverless_wrapper._helper import environ
 import boto3
 
 __all__ = ["create_dynamo_db_table_from_schema"]
@@ -49,7 +49,7 @@ def create_dynamo_db_table_from_schema(json_schema, include_stage_in_table_name=
     ) = _parse_json_schema_2_dynamo_db_schema(json_schema)
 
     if include_stage_in_table_name:
-        table_name = f"{os_environ['STAGE']}-{table_name}"
+        table_name = f"{environ['STAGE']}-{table_name}"
 
     ddb = boto3.resource("dynamodb", **resource_config)
     try:

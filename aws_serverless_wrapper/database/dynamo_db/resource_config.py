@@ -1,4 +1,4 @@
-from os import environ as os_environ
+from aws_serverless_wrapper._helper import environ
 
 __all__ = ["resource_config"]
 
@@ -11,30 +11,30 @@ def craft_config():
     __switch_db_resource_config = {
         "local": {
             "endpoint_url": __switch_local_docker_env[
-                "UnitTest" if "AWS_SAM_LOCAL" not in os_environ else "AWS_SAM_LOCAL"
+                "UnitTest" if "AWS_SAM_LOCAL" not in environ else "AWS_SAM_LOCAL"
             ],
             "region_name": "dummy",
             "aws_access_key_id": "dummy",
             "aws_secret_access_key": "dummy",
         },
-        "cloud": {"region_name": os_environ["AWS_REGION"]},
+        "cloud": {"region_name": environ["AWS_REGION"]},
     }
 
-    if "AWS_SAM_LOCAL" in os_environ:
-        os_environ["ENV"] = "local"
-        os_environ["STAGE"] = "TEST"
-    elif "AWS_LAMBDA_FUNCTION_NAME" in os_environ:
-        os_environ["ENV"] = "cloud"
-    elif "UnitTest" in os_environ:
-        os_environ["ENV"] = "local"
-        os_environ["STAGE"] = "TEST"
+    if "AWS_SAM_LOCAL" in environ:
+        environ["ENV"] = "local"
+        environ["STAGE"] = "TEST"
+    elif "AWS_LAMBDA_FUNCTION_NAME" in environ:
+        environ["ENV"] = "cloud"
+    elif "UnitTest" in environ:
+        environ["ENV"] = "local"
+        environ["STAGE"] = "TEST"
     else:
-        if not all(key in os_environ for key in ["STAGE", "ENV"]):
+        if not all(key in environ for key in ["STAGE", "ENV"]):
             raise ValueError("'STAGE' and 'ENV' need to be provided in os.environ")
         # else:
-        #     env = os_environ["ENV"]
+        #     env = environ["ENV"]
 
-    return __switch_db_resource_config[os_environ["ENV"]]
+    return __switch_db_resource_config[environ["ENV"]]
 
 
 resource_config = craft_config()
