@@ -18,6 +18,7 @@ class TestDynamoDBBase(TestCase):
         os_environ["UnitTest"] = "True"
         os_environ["AWS_REGION"] = "local"
         os_environ["WRAPPER_DATABASE"] = "DynamoDB"
+        os_environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"] = "file"
         os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] = "test_data/tables/"
 
         cls.actual_cwd = getcwd()

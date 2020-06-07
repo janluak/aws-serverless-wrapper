@@ -22,21 +22,40 @@ def __resolver(directory):
     return RefResolver(relative_directory, None)
 
 
-def get_schema(directory: str) -> dict:
-    if "://" not in directory:
-        if ".json" != directory[-5:]:
-            directory += ".json"
-        with open(directory, "r") as f:
+def get_schema(file: str = None, url: str = None) -> dict:
+    if file:
+        if ".json" != file[-5:]:
+            file += ".json"
+        with open(file, "r") as f:
             return json_load(f)
-    else:
+
+    elif url:
         raise NotImplementedError
 
+    else:
+        raise ValueError("at least one input must be specified")
 
-def get_validator(directory, non_required=False):
-    schema = get_schema(directory)
+
+def get_validator(file: str = None, url: str = None, raw: dict = None, non_required=False):
+    if not any(i for i in [file, url, raw]):
+        raise ValueError("at least one input must be specified")
+
+    if file or url:
+        schema = get_schema(file=file, url=url)
+    elif raw:
+        schema = raw
+    else:
+        raise ValueError("at least one input must be specified")
+
     if non_required:
         delete_keys_in_nested_dict(schema, "required")
-    return __current_validator(schema, resolver=__resolver(directory))
+
+    if file:
+        return __current_validator(schema, resolver=__resolver(file))
+    elif url:
+        return __current_validator(schema, resolver=None)
+    else:
+        return __current_validator(schema)
 
 
 def verify_data(directory: str, data_to_verify: dict):

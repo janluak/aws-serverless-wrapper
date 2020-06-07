@@ -79,11 +79,12 @@ class Table:
         self.__error_messages = CustomExceptionRaiser(self)
         self.__table = dynamo_db_resource.Table(f"{os_environ['STAGE']}-{table_name}")
 
+        schema_origin = os_environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"]
         schema_directory = os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"]
-        self.__schema = get_schema(schema_directory + self.__table_name)
-        self.__validator = get_validator(schema_directory + self.__table_name)
+        self.__schema = get_schema(**{schema_origin.lower(): schema_directory + self.__table_name})
+        self.__validator = get_validator(**{schema_origin.lower(): schema_directory + self.__table_name})
         self.__validator_update = get_validator(
-            schema_directory + self.__table_name, non_required=True
+            **{schema_origin.lower(): schema_directory + self.__table_name}, non_required=True
         )
 
     @property
