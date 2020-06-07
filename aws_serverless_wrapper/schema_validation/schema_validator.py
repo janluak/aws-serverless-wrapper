@@ -41,7 +41,7 @@ class SchemaValidator:
 
     @property
     def schema(self):
-        return self.__schema
+        return self.validator.schema
 
     @property
     def validator(self):

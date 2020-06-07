@@ -37,6 +37,25 @@ class TestSchemaLoadingFromFile(TestSchemaLoading):
         loaded_schema = validator.schema
         self.assertEqual(expected_schema, loaded_schema)
 
+    def test_load_nested_schema(self):
+        from aws_serverless_wrapper.schema_validation.schema_validator import SchemaValidator
+
+        base_schema_file = "test_data/database/schema_nested.json"
+        child_schema_file = "test_data/database/schema_nested_array_child.json"
+
+        expected_schema = load_single(base_schema_file)
+        child_schema = load_single(child_schema_file)
+
+        for key in ["$id", "$schema", "title"]:
+            child_schema.pop(key)
+
+        expected_schema["properties"]["some_nested_dict"] = child_schema
+
+        validator = SchemaValidator(file=base_schema_file)
+        loaded_schema = validator.schema
+
+        self.assertEqual(expected_schema, loaded_schema)
+
 
 class TestSchemaLoadingFromURL(TestSchemaLoading):
     pass
