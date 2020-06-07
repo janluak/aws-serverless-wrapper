@@ -25,7 +25,7 @@ class SchemaValidator:
         self.__resolver = None
 
         self.__validator = None
-        self.__validator_without_required = None
+        self.__validator_without_required_check = None
 
         if file:
             if ".json" != file[-5:]:
@@ -50,10 +50,16 @@ class SchemaValidator:
         return self.__validator
 
     @property
-    def validator_without_required(self):
-        if not self.__validator_without_required:
+    def validator_without_required_check(self):
+        if not self.__validator_without_required_check:
             self.__create_validator(no_required_key=True)
-        return self.__validator_without_required
+        return self.__validator_without_required_check
+
+    def validate(self, data, no_required_check=False):
+        if not no_required_check:
+            self.validator.validate(data)
+        else:
+            self.validator_without_required_check.validate(data)
 
     def __file_resolver(self):
         absolute_directory = dirname(realpath(self.__file))
@@ -72,7 +78,7 @@ class SchemaValidator:
         if no_required_key:
             schema = deepcopy(self.__raw_schema)
             delete_keys_in_nested_dict(schema, "required")
-            self.__validator_without_required = _current_validator(schema, resolver=self.__resolver)
+            self.__validator_without_required_check = _current_validator(schema, resolver=self.__resolver)
         else:
             self.__validator = _current_validator(self.__raw_schema, resolver=self.__resolver)
 

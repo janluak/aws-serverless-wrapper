@@ -27,7 +27,7 @@ class TestSchemaValidation(TestCase):
         schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_basic.json"
         validator = SchemaValidator(file=schema_file)
 
-        validator.validator.validate(test_item)
+        validator.validate(test_item)
 
     def test_basic_schema_wrong_data(self):
         from aws_serverless_wrapper.schema_validation import SchemaValidator
@@ -38,7 +38,7 @@ class TestSchemaValidation(TestCase):
         validator = SchemaValidator(file=schema_file)
 
         try:
-            validator.validator.validate(test_item)
+            validator.validate(test_item)
             self.fail()
         except ValidationError:
             pass
@@ -51,7 +51,7 @@ class TestSchemaValidation(TestCase):
         schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_nested.json"
         validator = SchemaValidator(file=schema_file)
 
-        validator.validator.validate(test_item)
+        validator.validate(test_item)
 
     def test_basic_schema_without_required(self):
         from aws_serverless_wrapper.schema_validation import SchemaValidator
@@ -63,7 +63,7 @@ class TestSchemaValidation(TestCase):
         schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_basic.json"
         validator = SchemaValidator(file=schema_file)
 
-        validator.validator_without_required.validate(test_item)
+        validator.validate(test_item, no_required_check=True)
 
     def test_basic_schema_without_required_nested(self):
         from aws_serverless_wrapper.schema_validation import SchemaValidator
@@ -75,5 +75,5 @@ class TestSchemaValidation(TestCase):
         schema_file = dirname(realpath(__file__)) + "/test_data/database/schema_basic.json"
         validator = SchemaValidator(file=schema_file)
 
-        validator.validator_without_required.validate(test_item)
+        validator.validate(test_item, no_required_check=True)
 

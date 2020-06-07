@@ -106,13 +106,13 @@ class Table:
         if "update" in stack()[1].function:
             self._primary_key_checker(given_input[0])
             try:
-                self.__schema_validator.validator_without_required.validate(given_input[1])
+                self.__schema_validator.validate(given_input[1], no_required_check=True)
             except ValidationError as e:
                 self.__error_messages.wrong_data_type(e)
 
         elif "put" == stack()[1].function:
             try:
-                self.__schema_validator.validator.validate(given_input)
+                self.__schema_validator.validate(given_input)
             except ValidationError as e:
                 self.__error_messages.wrong_data_type(e)
 
