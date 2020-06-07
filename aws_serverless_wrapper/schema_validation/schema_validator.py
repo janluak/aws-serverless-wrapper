@@ -31,13 +31,13 @@ class SchemaValidator:
             if ".json" != file[-5:]:
                 file += ".json"
             with open(file, "r") as f:
-                self.__schema = json_load(f)
+                self.__raw_schema = json_load(f)
 
         elif url:
             raise NotImplementedError
 
         else:
-            raise ValueError("at least one input must be specified")
+            self.__raw_schema = raw
 
     @property
     def schema(self):
@@ -70,11 +70,11 @@ class SchemaValidator:
             self.__url_resolver()
 
         if no_required_key:
-            schema = deepcopy(self.__schema)
+            schema = deepcopy(self.__raw_schema)
             delete_keys_in_nested_dict(schema, "required")
             self.__validator_without_required = _current_validator(schema, resolver=self.__resolver)
         else:
-            self.__validator = _current_validator(self.__schema, resolver=self.__resolver)
+            self.__validator = _current_validator(self.__raw_schema, resolver=self.__resolver)
 
 
 def verify_data(data_to_verify: dict, file: str = None, url: str = None, raw: dict = None):
