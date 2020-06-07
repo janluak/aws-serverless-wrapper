@@ -103,9 +103,10 @@ class TestDynamoDB(TestDynamoDBBase):
             load_single(f"test_data/tables/{cls.table_name}.json")
         )
 
+    def setUp(self) -> None:
         from aws_serverless_wrapper.database import Table
 
-        t = Table(cls.table_name)
+        t = Table(self.table_name)
         t.truncate()
 
     def test_put(self):
