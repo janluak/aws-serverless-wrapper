@@ -27,13 +27,14 @@ class TestSchemaLoadingFromFile(TestSchemaLoading):
         chdir(cls.actual_cwd)
 
     def test_load_basic_schema(self):
-        from aws_serverless_wrapper.schema_validation.schema_validator import get_schema
+        from aws_serverless_wrapper.schema_validation.schema_validator import SchemaValidator
 
         schema_file = "test_data/database/schema_basic.json"
 
         expected_schema = load_single(schema_file)
 
-        loaded_schema = get_schema(schema_file)
+        validator = SchemaValidator(file=schema_file)
+        loaded_schema = validator.schema
         self.assertEqual(expected_schema, loaded_schema)
 
 

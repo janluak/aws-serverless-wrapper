@@ -47,7 +47,11 @@
             "subKEY2": {
               "type": "number"
             }
-          }
+          },
+          "required": [
+            "subKEY1",
+            "subKEY2"
+          ]
         }
       }
     },

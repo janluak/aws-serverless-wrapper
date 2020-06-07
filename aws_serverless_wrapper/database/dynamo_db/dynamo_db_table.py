@@ -1,4 +1,4 @@
-from aws_serverless_wrapper.schema_validation import get_schema, get_validator
+from aws_serverless_wrapper.schema_validation import SchemaValidator
 from jsonschema.exceptions import ValidationError
 from aws_serverless_wrapper._helper.traverse_dict import *
 from boto3 import resource
@@ -79,12 +79,11 @@ class Table:
         self.__error_messages = CustomExceptionRaiser(self)
         self.__table = dynamo_db_resource.Table(f"{os_environ['STAGE']}-{table_name}")
 
-        schema_origin = os_environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"]
-        schema_directory = os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"]
-        self.__schema = get_schema(**{schema_origin.lower(): schema_directory + self.__table_name})
-        self.__validator = get_validator(**{schema_origin.lower(): schema_directory + self.__table_name})
-        self.__validator_update = get_validator(
-            **{schema_origin.lower(): schema_directory + self.__table_name}, non_required=True
+        self.__schema_validator = SchemaValidator(
+            **{
+                os_environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"].lower():
+                    os_environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] + self.__table_name
+            }
         )
 
     @property
@@ -93,11 +92,11 @@ class Table:
 
     @property
     def pk(self):
-        return self.__schema["default"]
+        return self.__schema_validator.schema["default"]
 
     @property
     def schema(self):
-        return self.__schema
+        return self.__schema_validator.schema
 
     @property
     def table(self):
@@ -107,13 +106,13 @@ class Table:
         if "update" in stack()[1].function:
             self._primary_key_checker(given_input[0])
             try:
-                self.__validator_update.validate(given_input[1])
+                self.__schema_validator.validator_without_required.validate(given_input[1])
             except ValidationError as e:
                 self.__error_messages.wrong_data_type(e)
 
         elif "put" == stack()[1].function:
             try:
-                self.__validator.validate(given_input)
+                self.__schema_validator.validator.validate(given_input)
             except ValidationError as e:
                 self.__error_messages.wrong_data_type(e)
 
