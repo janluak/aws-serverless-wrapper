@@ -81,8 +81,8 @@ class Table:
 
         self.__schema_validator = SchemaValidator(
             **{
-                environ["WRAPPER_DATABASE_SCHEMA_ORIGIN"].lower():
-                    environ["WRAPPER_DATABASE_SCHEMA_DIRECTORY"] + self.__table_name
+                environ["WRAPPER_DATABASE"]["SCHEMA_ORIGIN"].lower():
+                    environ["WRAPPER_DATABASE"]["SCHEMA_DIRECTORY"] + self.__table_name
             }
         )
 

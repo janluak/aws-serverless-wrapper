@@ -13,7 +13,7 @@ class TestSchemaValidation(TestCase):
     def setUpClass(cls) -> None:
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
-        os_environ["UnitTest"] = "True"
+        os_environ["WRAPPER_CONFIG_FILE"] = "wrapper_config.json"
 
     @classmethod
     def tearDownClass(cls) -> None:
