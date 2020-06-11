@@ -78,8 +78,7 @@ class APIDataValidator:
     def __decode_json_body(self):
         try:
             self.__data["body"] = loads(self.__data["body"])
-        except (JSONDecodeError, TypeError) as e:
-            print(e)
+        except (JSONDecodeError, TypeError):
             raise TypeError(
                 {
                     "statusCode": 400,
@@ -94,9 +93,6 @@ class APIDataValidator:
         try:
             self.__schema_validator.validate(self.__data)
         except ValidationError as err:
-            print(err._contents())
-            print(err.path)
-
             raise TypeError(
                 {
                     "statusCode": 400 if "httpMethod" != err.path[0] else 405,
