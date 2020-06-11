@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Basic API",
+  "description": "Some basic template for describing an API",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "httpMethod": {
+      "description": "the ReST method(s) type allowed for this API",
+      "type": "string",
+      "const": "POST"
+    },
+    "headers": {
+      "description": "request header",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "isBase64Encoded": {
+          "description": "e.g. allow only not encoded requests",
+          "type": "boolean",
+          "const": false
+        },
+        "requestContext": {
+          "description": "if you want to make sure, the requestContext was provided",
+          "type": "object"
+        }
+      },
+      "required": [
+      ]
+    },
+    "body": {
+      "description": "contents of the request body, JSON formatted",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "body_key1": {
+          "description": "containing only a string",
+          "type": "string"
+        },
+        "body_key2": {
+          "description": "containing a not further specified dictionary",
+          "type": "object"
+        }
+      }
+    },
+    "pathParameters": {
+      "description": "path parameter in url (required variables {url.com/{path_level1}/{path_level2}} -> predefined in request, string only)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path_level1": {
+          "description": "key name as specified in endpoint config, first level",
+          "type": "string",
+          "enum": [
+            "path_value1",
+            "path_value2"
+          ]
+        },
+        "path_level2": {
+          "description": "key name as specified in endpoint config, second level",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path_level1",
+        "path_level2"
+      ]
+    },
+    "queryParameters": {
+      "description": "query parameter in url (optional keyword args {url.com/?key=value}, string only)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key1": {
+          "description": "key1 argument",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "key2": {
+          "description": "key2 argument",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+      ]
+    }
+  },
+  "required": [
+    "headers",
+    "body",
+    "pathParameters"
+  ]
+}
