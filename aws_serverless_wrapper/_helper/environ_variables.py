@@ -5,6 +5,14 @@ __all__ = ["environ"]
 required_environ_keys = ["STAGE", "WRAPPER_CONFIG_FILE"]
 
 
+class Subcribable:
+    def __getitem__(self, item):
+        return Subcribable()
+
+    def __str__(self):
+        return str()
+
+
 class Environ:
     def __init__(self):
         self.__load_new_config()
@@ -31,7 +39,7 @@ class Environ:
                 self.__load_new_config()
                 return self.__getitem__(key)
             else:
-                return str()
+                return Subcribable()
 
     def __setitem__(self, key, value):
         self.__config[key] = value
