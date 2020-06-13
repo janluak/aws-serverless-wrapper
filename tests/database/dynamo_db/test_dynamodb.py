@@ -15,7 +15,7 @@ class TestDynamoDBBase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         os_environ["STAGE"] = "TEST"
-        os_environ["WRAPPER_CONFIG_FILE"] = "wrapper_config.json"
+        os_environ["WRAPPER_CONFIG_FILE"] = "dynamodb_wrapper_config.json"
 
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))

@@ -8,7 +8,7 @@ from datesy.file_IO.json_file import load_single
 class TestSchemaLoading(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        os_environ["WRAPPER_CONFIG_FILE"] = "wrapper_config.json"
+        os_environ["WRAPPER_CONFIG_FILE"] = "schema_wrapper_config.json"
 
 
 class TestSchemaLoadingFromFile(TestSchemaLoading):
