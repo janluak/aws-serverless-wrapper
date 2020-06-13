@@ -5,12 +5,20 @@ __all__ = ["environ"]
 required_environ_keys = ["STAGE", "WRAPPER_CONFIG_FILE"]
 
 
-class Subcribable:
+class NoExceptDict(dict):
     def __getitem__(self, item):
-        return Subcribable()
+        return self.get(item, NoExceptDict())
 
-    def __str__(self):
-        return str()
+
+def change_dict_to_no_except_dict(data):
+    if isinstance(data, list):
+        for i in range(len(data)):
+            change_dict_to_no_except_dict(i)
+    elif isinstance(data, dict):
+        for key in data.copy():
+            data[key] = change_dict_to_no_except_dict(data[key])
+        data = NoExceptDict(data)
+    return data
 
 
 class Environ:
@@ -21,30 +29,43 @@ class Environ:
         try:
             self.__config_file = os_environ["WRAPPER_CONFIG_FILE"]
             with open(self.__config_file, "r") as f:
-                self.__config = load(f)
+                self.__config = change_dict_to_no_except_dict(load(f))
         except KeyError:
             self.__config_file = str()
             self.__config = dict()
             return str()
 
+    def __fallback(self, key):
+        if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
+            self.__load_new_config()
+            return self.__getitem__(key)
+
+        else:
+            return NoExceptDict()
+
     def __getitem__(self, key):
-        try:
-            return self.__config[key]
-        except KeyError:
-            if key in required_environ_keys:
+        if key not in required_environ_keys:
+            try:
+                if value := self.__config[key]:
+                    return value
+                else:
+                    return self.__fallback(key)
+            except KeyError:
+                return self.__fallback(key)
+        else:
+            try:
+                return os_environ[key]
+            except KeyError:
                 raise EnvironmentError(
                     f"{key} must be defined in os.environment"
                 )
-            if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
-                self.__load_new_config()
-                return self.__getitem__(key)
-            else:
-                return Subcribable()
 
     def __setitem__(self, key, value):
         self.__config[key] = value
 
     def __iter__(self):
+        if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
+            self.__load_new_config()
         return self.__config.__iter__()
 
 
