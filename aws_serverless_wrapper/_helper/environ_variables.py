@@ -3,6 +3,10 @@ from json import load
 
 __all__ = ["environ"]
 required_environ_keys = ["STAGE", "WRAPPER_CONFIG_FILE"]
+fallback_values = {
+    "dict_hash_digest_size": 20,
+    "dict_hash_ignore_keys": ["time_stamp", "timestamp"]
+}
 
 
 class NoExceptDict(dict):
@@ -39,7 +43,8 @@ class Environ:
         if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
             self.__load_new_config()
             return self.__getitem__(key)
-
+        elif key in fallback_values:
+            return fallback_values[key]
         else:
             return NoExceptDict()
 
