@@ -4,7 +4,7 @@ from os.path import dirname, realpath
 from os import chdir, getcwd
 from datesy.file_IO.json_file import load_single
 
-test_item = load_single(f"{dirname(realpath(__file__))}/test_data/test_item.json")
+test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
 test_item_primary = {"primary_partition_key": "some_identification_string"}
 
 
