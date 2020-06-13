@@ -2,14 +2,11 @@ from unittest import TestCase
 from os import environ as os_environ
 from os.path import dirname, realpath
 from os import chdir, getcwd
+from copy import deepcopy
 from datesy.file_IO.json_file import load_single
-
-test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
-test_item_primary = {"primary_partition_key": "some_identification_string"}
 
 
 class TestDynamoDBResource(TestCase):
-    table_name = "TableForTests"
     actual_cwd = str()
     table = object
 
@@ -27,20 +24,29 @@ class TestDynamoDBResource(TestCase):
     @classmethod
     def tearDownClass(cls) -> None:
         chdir(cls.actual_cwd)
-        cls.table.delete(**test_item_primary)
+        cls.table.delete(**cls.test_item_primary)
 
     def setUp(self) -> None:
-        self.table.put(test_item, overwrite=True)
+        self.table.put(self.test_item, overwrite=True)
 
 
 class TestSimpleDynamoDBResource(TestDynamoDBResource):
+    table_name = "TableForTests"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
+        cls.test_item_primary = {"primary_partition_key": "some_identification_string"}
+
+        super().setUpClass()
+
     def test_get_item_from_resource(self):
         from aws_serverless_wrapper.database import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
-        loaded_item = database_resource[self.table_name].get(**test_item_primary)
+        loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
 
-        self.assertEqual(test_item, loaded_item)
+        self.assertEqual(self.test_item, loaded_item)
 
     def test_resource_returns_table(self):
         from aws_serverless_wrapper.database import DatabaseResourceController
@@ -56,3 +62,63 @@ class TestSimpleDynamoDBResource(TestDynamoDBResource):
 class TestReusedDynamoDBResource(TestDynamoDBResource):
     # ToDo check re-usage of connection -> only one entry if accessing table twice
     pass
+
+
+class TestCachedDynamoDBResource(TestDynamoDBResource):
+    table_name = "CachedTableForTests"
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_cache_item.json")
+        cls.test_item_primary = {"primary_partition_key": "cache_identification_string"}
+        super().setUpClass()
+
+    def test_get_item_from_resource(self):
+        from aws_serverless_wrapper.database import DatabaseResourceController
+        database_resource = DatabaseResourceController()
+
+        loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
+
+        self.assertEqual(self.test_item, loaded_item)
+
+    def test_get_item_from_cache_with_hash(self):
+        from aws_serverless_wrapper.database import DatabaseResourceController
+        database_resource = DatabaseResourceController()
+
+        database_resource[self.table_name].get(**self.test_item_primary)
+        self.table.delete(**self.test_item_primary)
+
+        from aws_serverless_wrapper._helper import hash_dict
+        item_hash = hash_dict(self.test_item)
+
+        loaded_item = database_resource[self.table_name].get(**self.test_item_primary, hash=item_hash)
+
+        self.assertEqual(self.test_item, loaded_item)
+
+    def test_get_changed_item_with_outdated_hash(self):
+        from aws_serverless_wrapper.database import DatabaseResourceController
+        database_resource = DatabaseResourceController()
+
+        database_resource[self.table_name].get(**self.test_item_primary)
+        original_hash = database_resource[self.table_name]._hash_of(**self.test_item_primary)
+        changed_item = deepcopy(self.test_item)
+        changed_item["some_float"] = 300281.382
+        self.table.put(changed_item, overwrite=True)
+
+        from aws_serverless_wrapper._helper import hash_dict
+        changed_hash = hash_dict(changed_item)
+
+        self.assertNotEqual(original_hash, changed_hash)
+
+        loaded_item = database_resource[self.table_name].get(**self.test_item_primary, hash=changed_hash)
+
+        self.assertEqual(changed_item, loaded_item)
+
+    def test_put_item(self):
+        from aws_serverless_wrapper.database import DatabaseResourceController
+        database_resource = DatabaseResourceController()
+
+        database_resource[self.table_name].put(self.test_item, overwrite=True)
+
+    def test_update_item_and_check_for_new_hash(self):
+        self.skipTest("solution not implemented")
