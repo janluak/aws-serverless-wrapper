@@ -39,7 +39,11 @@ class Environ:
         except KeyError:
             self.__config_file = str()
             self.__config = dict()
-            return str()
+            from warnings import warn
+            warn(
+                "No WRAPPER_CONFIG_FILE specified",
+                ResourceWarning
+            )
 
     def __fallback(self, key):
         if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:

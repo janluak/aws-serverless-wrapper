@@ -1,13 +1,22 @@
 from unittest import TestCase
 from os import environ as os_environ
 from os.path import dirname, realpath
-from os import chdir, getcwd
+from warnings import (catch_warnings, simplefilter)
 import pytest
 
 
 def test_get_undefined_os_environ_mandatory():
-    with pytest.raises(KeyError):
-        from aws_serverless_wrapper._helper import environ
+    if "WRAPPER_CONFIG_FILE" in os_environ:
+        del os_environ["WRAPPER_CONFIG_FILE"]
+
+    with catch_warnings(record=True) as w:
+        simplefilter("always")
+        with pytest.raises(KeyError):
+            from aws_serverless_wrapper._helper import environ
+            # assert environ["WRAPPER_CONFIG_FILE"]
+
+        assert issubclass(w[0].category, ResourceWarning)
+        assert "No WRAPPER_CONFIG_FILE specified" == str(w[0].message)
 
 
 class TestEnvironVariables(TestCase):
