@@ -2,7 +2,7 @@ from .json_to_python_type import json_to_python_type_switch
 from json import load as json_load
 from jsonschema.validators import Draft7Validator, RefResolver
 from os.path import dirname, realpath
-from aws_serverless_wrapper._helper import delete_keys_in_nested_dict
+from .._helper import delete_keys_in_nested_dict
 from copy import deepcopy
 
 _current_validator = Draft7Validator

@@ -3,6 +3,9 @@ from .schema_validator import SchemaValidator
 from jsonschema.exceptions import ValidationError
 
 
+__all__ = ["APIDataValidator"]
+
+
 class APIDataValidator:
     def __init__(
             self,

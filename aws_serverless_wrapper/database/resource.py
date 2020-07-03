@@ -1,4 +1,4 @@
-from aws_serverless_wrapper._helper import environ, hash_dict
+from .._helper import (environ, hash_dict)
 import logging
 from ._resource_switch import Table
 

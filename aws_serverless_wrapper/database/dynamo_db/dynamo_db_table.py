@@ -1,11 +1,11 @@
 from aws_serverless_wrapper.schema_validation import SchemaValidator
 from jsonschema.exceptions import ValidationError
-from aws_serverless_wrapper._helper.traverse_dict import *
-from aws_serverless_wrapper._helper import environ
+from ..._helper.traverse_dict import (decimal_dict_to_float, float_dict_to_decimal)
+from ..._helper import environ
 from boto3 import resource
 from copy import deepcopy
 from inspect import stack
-from aws_serverless_wrapper.database.dynamo_db.resource_config import resource_config
+from .resource_config import resource_config
 
 dynamo_db_resource = resource("dynamodb", **resource_config)
 

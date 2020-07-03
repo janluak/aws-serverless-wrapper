@@ -1,4 +1,4 @@
-from aws_serverless_wrapper._helper import environ
+from .._helper import environ
 
 
 if environ["WRAPPER_DATABASE"]["MODEL"] == "DynamoDB":
