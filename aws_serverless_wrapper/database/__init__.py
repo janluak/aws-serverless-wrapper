@@ -1,1 +1,1 @@
-from .resource import DatabaseResourceController
+from .resource import database_resource
