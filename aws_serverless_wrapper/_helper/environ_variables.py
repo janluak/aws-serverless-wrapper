@@ -27,11 +27,13 @@ def change_dict_to_no_except_dict(data):
 
 class Environ:
     def __init__(self):
-        self.__load_new_config()
+        self.__config_file = str()
+        self.__config = dict()
+        self._load_config_from_file()
 
-    def __load_new_config(self):
+    def _load_config_from_file(self, file_name=None):
         try:
-            self.__config_file = os_environ["WRAPPER_CONFIG_FILE"]
+            self.__config_file = os_environ["WRAPPER_CONFIG_FILE"] if not file_name else file_name
             with open(self.__config_file, "r") as f:
                 self.__config = change_dict_to_no_except_dict(load(f))
         except KeyError:
@@ -41,7 +43,7 @@ class Environ:
 
     def __fallback(self, key):
         if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
-            self.__load_new_config()
+            self._load_config_from_file()
             return self.__getitem__(key)
         elif key in fallback_values:
             return fallback_values[key]
@@ -70,7 +72,7 @@ class Environ:
 
     def __iter__(self):
         if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
-            self.__load_new_config()
+            self._load_config_from_file()
         return self.__config.__iter__()
 
 

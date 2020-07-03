@@ -13,7 +13,7 @@ class TestDynamoDBResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         os_environ["STAGE"] = "TEST"
-        os_environ["WRAPPER_CONFIG_FILE"] = "dynamodb_wrapper_config.json"
+        os_environ["WRAPPER_CONFIG_FILE"] = f"{dirname(realpath(__file__))}/dynamodb_wrapper_config.json"
 
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
@@ -26,22 +26,19 @@ class TestDynamoDBResource(TestCase):
         chdir(cls.actual_cwd)
         cls.table.delete(**cls.test_item_primary)
 
+        del os_environ["WRAPPER_CONFIG_FILE"]
+
     def setUp(self) -> None:
         self.table.put(self.test_item, overwrite=True)
 
 
 class TestSimpleDynamoDBResource(TestDynamoDBResource):
     table_name = "TableForTests"
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
-        cls.test_item_primary = {"primary_partition_key": "some_identification_string"}
-
-        super().setUpClass()
+    test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
+    test_item_primary = {"primary_partition_key": "some_identification_string"}
 
     def test_get_item_from_resource(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
         loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
@@ -49,7 +46,7 @@ class TestSimpleDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(self.test_item, loaded_item)
 
     def test_resource_returns_table(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         from aws_serverless_wrapper.database.dynamo_db import Table
         database_resource = DatabaseResourceController()
 
@@ -66,15 +63,11 @@ class TestReusedDynamoDBResource(TestDynamoDBResource):
 
 class TestCachedDynamoDBResource(TestDynamoDBResource):
     table_name = "CachedTableForTests"
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_cache_item.json")
-        cls.test_item_primary = {"primary_partition_key": "cache_identification_string"}
-        super().setUpClass()
+    test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_cache_item.json")
+    test_item_primary = {"primary_partition_key": "cache_identification_string"}
 
     def test_get_item_from_resource(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
         loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
@@ -82,7 +75,7 @@ class TestCachedDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(self.test_item, loaded_item)
 
     def test_get_item_from_cache_with_hash(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].get(**self.test_item_primary)
@@ -96,7 +89,7 @@ class TestCachedDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(self.test_item, loaded_item)
 
     def test_get_changed_item_with_outdated_hash(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].get(**self.test_item_primary)
@@ -115,7 +108,7 @@ class TestCachedDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(changed_item, loaded_item)
 
     def test_put_item(self):
-        from aws_serverless_wrapper.database import DatabaseResourceController
+        from aws_serverless_wrapper.database.resource import DatabaseResourceController
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].put(self.test_item, overwrite=True)

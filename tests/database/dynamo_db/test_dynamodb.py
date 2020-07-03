@@ -15,7 +15,7 @@ class TestDynamoDBBase(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         os_environ["STAGE"] = "TEST"
-        os_environ["WRAPPER_CONFIG_FILE"] = "dynamodb_wrapper_config.json"
+        os_environ["WRAPPER_CONFIG_FILE"] = f"{dirname(realpath(__file__))}/dynamodb_wrapper_config.json"
 
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
@@ -93,10 +93,10 @@ class TestDynamoDB(TestDynamoDBBase):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
-        from aws_serverless_wrapper.database.dynamo_db import create_dynamo_db_table_from_schema
+        from aws_serverless_wrapper.database.dynamo_db.create_table import create_dynamo_db_table_from_schema
 
         create_dynamo_db_table_from_schema(
-            load_single(f"test_data/tables/{cls.table_name}.json")
+            load_single(f"{dirname(realpath(__file__))}/test_data/tables/{cls.table_name}.json")
         )
 
     def setUp(self) -> None:

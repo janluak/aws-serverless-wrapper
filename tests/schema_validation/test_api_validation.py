@@ -1,36 +1,22 @@
 from unittest import TestCase
-from os import environ as os_environ
 from os.path import dirname, realpath
-from os import chdir, getcwd
 from datesy.file_IO.json_file import load_single
-from jsonschema.exceptions import ValidationError
 
 
 class TestAPIValidation(TestCase):
-    actual_cwd = str()
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.actual_cwd = getcwd()
-        chdir(dirname(realpath(__file__)))
-        os_environ["WRAPPER_CONFIG_FILE"] = "schema_wrapper_config.json"
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        chdir(cls.actual_cwd)
 
     def test_basic(self):
         from aws_serverless_wrapper.schema_validation.api_validation import APIDataValidator
 
-        api_schema_file = "test_data/api/api_basic.json"
-        api_data = load_single("test_data/api/request_basic.json")
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = load_single(f"{dirname(realpath(__file__))}/test_data/api/request_basic.json")
         APIDataValidator(file=api_schema_file, api_data=api_data)
 
     def test_basic_with_wrong_httpMethod(self):
         from aws_serverless_wrapper.schema_validation.api_validation import APIDataValidator
 
-        api_schema_file = "test_data/api/api_basic.json"
-        api_data = load_single("test_data/api/request_basic.json")
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = load_single(f"{dirname(realpath(__file__))}/test_data/api/request_basic.json")
         api_data["httpMethod"] = "WRONG"
 
         with self.assertRaises(EnvironmentError) as TE:
@@ -48,8 +34,8 @@ class TestAPIValidation(TestCase):
     def test_basic_with_missing_body(self):
         from aws_serverless_wrapper.schema_validation.api_validation import APIDataValidator
 
-        api_schema_file = "test_data/api/api_basic.json"
-        api_data = load_single("test_data/api/request_basic.json")
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = load_single(f"{dirname(realpath(__file__))}/test_data/api/request_basic.json")
         api_data.pop("body")
 
         with self.assertRaises(TypeError) as TE:
@@ -67,8 +53,8 @@ class TestAPIValidation(TestCase):
     def test_basic_with_wrong_body(self):
         from aws_serverless_wrapper.schema_validation.api_validation import APIDataValidator
 
-        api_schema_file = "test_data/api/api_basic.json"
-        api_data = load_single("test_data/api/request_basic.json")
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = load_single(f"{dirname(realpath(__file__))}/test_data/api/request_basic.json")
         api_data["body"]["body_key1"] = 123
 
         with self.assertRaises(TypeError) as TE:
@@ -91,8 +77,8 @@ class TestAPIValidation(TestCase):
     def test_basic_with_missing_path_parameter(self):
         from aws_serverless_wrapper.schema_validation.api_validation import APIDataValidator
 
-        api_schema_file = "test_data/api/api_basic.json"
-        api_data = load_single("test_data/api/request_basic.json")
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = load_single(f"{dirname(realpath(__file__))}/test_data/api/request_basic.json")
         api_data.pop("pathParameters")
 
         with self.assertRaises(TypeError) as TE:
