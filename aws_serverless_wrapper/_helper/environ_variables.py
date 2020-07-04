@@ -46,7 +46,7 @@ class Environ:
             )
 
     def __fallback(self, key):
-        if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:
+        if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"] if "WRAPPER_CONFIG_FILE" in os_environ else False:
             self._load_config_from_file()
             return self.__getitem__(key)
         elif key in fallback_values:
@@ -67,9 +67,7 @@ class Environ:
             try:
                 return os_environ[key]
             except KeyError:
-                raise EnvironmentError(
-                    f"{key} must be defined in os.environment"
-                )
+                return NoExceptDict()
 
     def __setitem__(self, key, value):
         self.__config[key] = value

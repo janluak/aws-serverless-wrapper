@@ -11,9 +11,9 @@ def test_get_undefined_os_environ_mandatory():
 
     with catch_warnings(record=True) as w:
         simplefilter("always")
-        with pytest.raises(KeyError):
-            from aws_serverless_wrapper._helper import environ
-            # assert environ["WRAPPER_CONFIG_FILE"]
+
+        from aws_serverless_wrapper._helper import environ
+        assert environ["unknown_entry"] == dict()
 
         assert issubclass(w[0].category, ResourceWarning)
         assert "No WRAPPER_CONFIG_FILE specified" == str(w[0].message)
