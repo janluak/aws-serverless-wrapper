@@ -1,4 +1,4 @@
-from ..._helper import environ
+from ...._helper import environ
 import boto3
 
 __all__ = ["create_dynamo_db_table_from_schema"]

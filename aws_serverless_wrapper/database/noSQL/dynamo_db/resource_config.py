@@ -1,4 +1,4 @@
-from ..._helper import environ
+from ...._helper import environ
 
 __all__ = ["resource_config"]
 

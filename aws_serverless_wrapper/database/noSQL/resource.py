@@ -1,5 +1,4 @@
-from .._helper import (environ, hash_dict)
-import logging
+from ..._helper import (environ, hash_dict)
 from ._resource_switch import Table
 
 
@@ -49,7 +48,7 @@ class DatabaseResourceController:
         return self.__tables[table_name]
 
     def __create_table_connection(self, table_name: str):
-        if table_name in environ["WRAPPER_DATABASE"]["CACHED_TABLES"]:
+        if table_name in environ["WRAPPER_DATABASE"]["noSQL"]["CACHED_TABLES"]:
             self.__tables[table_name] = _CachedDatabaseResource(table_name)
         else:
             self.__tables[table_name] = Table(table_name)

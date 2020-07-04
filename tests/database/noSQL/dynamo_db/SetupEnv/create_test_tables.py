@@ -3,7 +3,7 @@ import json
 
 
 def create_table_for_schema_in_directory(directory):
-    from aws_serverless_wrapper.database.dynamo_db.create_table import create_dynamo_db_table_from_schema
+    from aws_serverless_wrapper.database.noSQL.dynamo_db.create_table import create_dynamo_db_table_from_schema
     print("creating in environment:", os_environ["ENV"], "\n")
     schemas = glob(directory)
 

@@ -35,7 +35,7 @@ class TestDynamoDBQuery(TestDynamoDBBase):
             "attribute2": "new_value2",
         }
 
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -53,7 +53,7 @@ class TestDynamoDBQuery(TestDynamoDBBase):
             "parent2": {"child3": "new_child3"},
         }
 
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -93,20 +93,20 @@ class TestDynamoDB(TestDynamoDBBase):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
-        from aws_serverless_wrapper.database.dynamo_db.create_table import create_dynamo_db_table_from_schema
+        from aws_serverless_wrapper.database.noSQL.dynamo_db.create_table import create_dynamo_db_table_from_schema
 
         create_dynamo_db_table_from_schema(
             load_single(f"{dirname(realpath(__file__))}/test_data/tables/{cls.table_name}.json")
         )
 
     def setUp(self) -> None:
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
         t.truncate()
 
     def test_put(self):
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
         t.put(test_item)
@@ -118,7 +118,7 @@ class TestDynamoDB(TestDynamoDBBase):
     def test_get_unknown_entry(self):
         get_key = {"primary_partition_key": "abc"}
 
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -137,7 +137,7 @@ class TestDynamoDB(TestDynamoDBBase):
     def test_get_with_wrong_primary(self):
         get_key = {"wrong_key": "some_identification_string"}
 
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -156,7 +156,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
     def test_put_item_missing_keys(self):
         item = test_item_primary.copy()
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -174,7 +174,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
     def test_put_get_and_delete_item(self):
 
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -198,7 +198,7 @@ class TestDynamoDB(TestDynamoDBBase):
         )
 
     def test_doubled_put_item_with_same_primary(self):
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -219,7 +219,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t.delete(**test_item_primary)
 
     def test_doubled_put_item_with_same_primary_overwrite(self):
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -233,7 +233,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t.delete(**test_item_primary)
 
     def test_delete_item(self):
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
         t.put(test_item)
@@ -253,7 +253,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
     def test_update_with_attribute(self):
         updated_attribute = {"some_float": 249235.93}
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -269,7 +269,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
     def test_update_with_attribute_of_false_type(self):
         updated_attribute = {"some_string": False}
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
@@ -292,7 +292,7 @@ class TestDynamoDB(TestDynamoDBBase):
         )
 
     def test_scan_and_truncate(self):
-        from aws_serverless_wrapper.database.dynamo_db import Table
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
         t.put(test_item)
