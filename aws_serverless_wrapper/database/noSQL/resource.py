@@ -1,4 +1,4 @@
-from ..._helper import (environ, hash_dict)
+from ..._helper import environ, hash_dict
 from ._resource_switch import Table
 
 
@@ -26,8 +26,8 @@ class _CachedDatabaseResource(Table):
     def get(self, hash=None, **kwargs):
         self.__calculate_lookup_key(kwargs)
         if (
-                self.__current_lookup_key not in self.__storage
-                or hash != self.__hashes[self.__current_lookup_key]
+            self.__current_lookup_key not in self.__storage
+            or hash != self.__hashes[self.__current_lookup_key]
         ):
             self.__update_item_from_db(**kwargs)
         return self.__storage[self.__current_lookup_key]

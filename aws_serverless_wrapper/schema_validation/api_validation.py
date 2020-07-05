@@ -8,12 +8,12 @@ __all__ = ["APIDataValidator"]
 
 class APIDataValidator:
     def __init__(
-            self,
-            api_data: dict,
-            file: str = None,
-            url: str = None,
-            raw: dict = None,
-            json_formatted_body: bool = False
+        self,
+        api_data: dict,
+        file: str = None,
+        url: str = None,
+        raw: dict = None,
+        json_formatted_body: bool = False,
     ):
         self.__httpMethod = api_data["httpMethod"]
 
@@ -50,7 +50,9 @@ class APIDataValidator:
 
     def __insert_http_method_to_origin(self, origin):
         if origin and self.__httpMethod not in origin:
-            origin = ".".join(origin.split(".")[:-1]) + "-" + self.__httpMethod + ".json"
+            origin = (
+                ".".join(origin.split(".")[:-1]) + "-" + self.__httpMethod + ".json"
+            )
         return origin
 
     def __check_for_required_parameter_types(self):
@@ -74,9 +76,11 @@ class APIDataValidator:
                 pass
 
     def __rename_multi_value_query_to_query_param(self):
-        self.__data["queryParameters"] = self.__data["multiValueQueryStringParameters"] \
-            if "multiValueQueryStringParameters" in self.__data \
+        self.__data["queryParameters"] = (
+            self.__data["multiValueQueryStringParameters"]
+            if "multiValueQueryStringParameters" in self.__data
             else dict()
+        )
 
     def __decode_json_body(self):
         try:

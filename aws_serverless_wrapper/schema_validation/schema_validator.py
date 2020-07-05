@@ -78,12 +78,18 @@ class SchemaValidator:
         if no_required_key:
             schema = deepcopy(self.__raw_schema)
             delete_keys_in_nested_dict(schema, "required")
-            self.__validator_without_required_check = _current_validator(schema, resolver=self.__resolver)
+            self.__validator_without_required_check = _current_validator(
+                schema, resolver=self.__resolver
+            )
         else:
-            self.__validator = _current_validator(self.__raw_schema, resolver=self.__resolver)
+            self.__validator = _current_validator(
+                self.__raw_schema, resolver=self.__resolver
+            )
 
 
-def verify_data(data_to_verify: dict, file: str = None, url: str = None, raw: dict = None):
+def verify_data(
+    data_to_verify: dict, file: str = None, url: str = None, raw: dict = None
+):
     """
     Verify data to JSON schema
 

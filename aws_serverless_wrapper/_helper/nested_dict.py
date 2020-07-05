@@ -38,4 +38,7 @@ def hash_dict(value):
     """
     value = delete_keys_in_nested_dict(value.copy(), environ["dict_hash_ignore_keys"])
 
-    return blake2b(str.encode(dumps(value, sort_keys=True)), digest_size=environ["dict_hash_digest_size"]).hexdigest()
+    return blake2b(
+        str.encode(dumps(value, sort_keys=True)),
+        digest_size=environ["dict_hash_digest_size"],
+    ).hexdigest()

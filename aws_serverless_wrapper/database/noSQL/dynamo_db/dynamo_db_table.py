@@ -1,7 +1,10 @@
-from aws_serverless_wrapper.schema_validation import SchemaValidator
+from ....schema_validation import SchemaValidator
 from jsonschema.exceptions import ValidationError
-from aws_serverless_wrapper._helper.traverse_dict import (decimal_dict_to_float, float_dict_to_decimal)
-from aws_serverless_wrapper._helper import environ
+from ...._helper.traverse_dict import (
+    decimal_dict_to_float,
+    float_dict_to_decimal,
+)
+from ...._helper import environ
 from boto3 import resource
 from copy import deepcopy
 from inspect import stack
@@ -81,8 +84,10 @@ class Table:
 
         self.__schema_validator = SchemaValidator(
             **{
-                environ["WRAPPER_DATABASE"]["noSQL"]["SCHEMA_ORIGIN"].lower():
-                    environ["WRAPPER_DATABASE"]["noSQL"]["SCHEMA_DIRECTORY"] + self.__table_name
+                environ["WRAPPER_DATABASE"]["noSQL"]["SCHEMA_ORIGIN"].lower(): environ[
+                    "WRAPPER_DATABASE"
+                ]["noSQL"]["SCHEMA_DIRECTORY"]
+                + self.__table_name
             }
         )
 

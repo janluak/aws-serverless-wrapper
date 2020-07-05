@@ -10,52 +10,26 @@ float_dict = {
     "some_string": "abcdef",
     "some_int": 42,
     "some_float": 13.42,
-    "some_dict": {
-        "key1": "value1",
-        "key2": 2
-    },
-    "some_nested_dict": {
-        "KEY1": {
-            "subKEY1": "subVALUE1",
-            "subKEY2": 42.24
-        }
-    },
+    "some_dict": {"key1": "value1", "key2": 2},
+    "some_nested_dict": {"KEY1": {"subKEY1": "subVALUE1", "subKEY2": 42.24}},
     "some_array": [
         "array_string",
         13,
-        {
-            "KEY1": {
-                "arraySubKEY1": "subVALUE1",
-                "arraySubKEY2": 21.12
-            }
-        }
-    ]
+        {"KEY1": {"arraySubKEY1": "subVALUE1", "arraySubKEY2": 21.12}},
+    ],
 }
 
 decimal_dict = {
     "some_string": "abcdef",
     "some_int": 42,
     "some_float": Decimal("13.42"),
-    "some_dict": {
-        "key1": "value1",
-        "key2": 2
-    },
-    "some_nested_dict": {
-        "KEY1": {
-            "subKEY1": "subVALUE1",
-            "subKEY2": Decimal("42.24")
-        }
-    },
+    "some_dict": {"key1": "value1", "key2": 2},
+    "some_nested_dict": {"KEY1": {"subKEY1": "subVALUE1", "subKEY2": Decimal("42.24")}},
     "some_array": [
         "array_string",
         13,
-        {
-            "KEY1": {
-                "arraySubKEY1": "subVALUE1",
-                "arraySubKEY2": Decimal("21.12")
-            }
-        }
-    ]
+        {"KEY1": {"arraySubKEY1": "subVALUE1", "arraySubKEY2": Decimal("21.12")}},
+    ],
 }
 
 
@@ -94,4 +68,3 @@ class TestTraverseDict(TestCase):
         from aws_serverless_wrapper._helper.traverse_dict import decimal_dict_to_float
 
         self.assertEqual(float_dict, decimal_dict_to_float(decimal_dict))
-

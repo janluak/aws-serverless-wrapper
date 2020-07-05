@@ -5,7 +5,7 @@ __all__ = ["environ"]
 required_environ_keys = ["STAGE", "WRAPPER_CONFIG_FILE"]
 fallback_values = {
     "dict_hash_digest_size": 20,
-    "dict_hash_ignore_keys": ["time_stamp", "timestamp"]
+    "dict_hash_ignore_keys": ["time_stamp", "timestamp"],
 }
 
 
@@ -33,20 +33,24 @@ class Environ:
 
     def _load_config_from_file(self, file_name=None):
         try:
-            self.__config_file = os_environ["WRAPPER_CONFIG_FILE"] if not file_name else file_name
+            self.__config_file = (
+                os_environ["WRAPPER_CONFIG_FILE"] if not file_name else file_name
+            )
             with open(self.__config_file, "r") as f:
                 self.__config = change_dict_to_no_except_dict(load(f))
         except KeyError:
             self.__config_file = str()
             self.__config = dict()
             from warnings import warn
-            warn(
-                "No WRAPPER_CONFIG_FILE specified",
-                ResourceWarning
-            )
+
+            warn("No WRAPPER_CONFIG_FILE specified", ResourceWarning)
 
     def __fallback(self, key):
-        if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"] if "WRAPPER_CONFIG_FILE" in os_environ else False:
+        if (
+            self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]
+            if "WRAPPER_CONFIG_FILE" in os_environ
+            else False
+        ):
             self._load_config_from_file()
             return self.__getitem__(key)
         elif key in fallback_values:

@@ -1,7 +1,7 @@
 from unittest import TestCase
 from os import environ as os_environ
 from os.path import dirname, realpath
-from warnings import (catch_warnings, simplefilter)
+from warnings import catch_warnings, simplefilter
 import pytest
 
 
@@ -13,6 +13,7 @@ def test_get_undefined_os_environ_mandatory():
         simplefilter("always")
 
         from aws_serverless_wrapper._helper import environ
+
         assert environ["unknown_entry"] == dict()
 
         assert issubclass(w[0].category, ResourceWarning)
@@ -29,7 +30,9 @@ class TestEmptyEnviron(TestEnvironVariables):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        os_environ["WRAPPER_CONFIG_FILE"] = f"{dirname(realpath(__file__))}/_helper_wrapper_config_empty.json"
+        os_environ[
+            "WRAPPER_CONFIG_FILE"
+        ] = f"{dirname(realpath(__file__))}/_helper_wrapper_config_empty.json"
 
     def test_get_unknown_key(self):
         from aws_serverless_wrapper._helper import environ
@@ -49,7 +52,9 @@ class TestConfiguredEnviron(TestEnvironVariables):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
-        os_environ["WRAPPER_CONFIG_FILE"] = f"{dirname(realpath(__file__))}/_helper_wrapper_config.json"
+        os_environ[
+            "WRAPPER_CONFIG_FILE"
+        ] = f"{dirname(realpath(__file__))}/_helper_wrapper_config.json"
 
     def test_get_stage(self):
         from aws_serverless_wrapper._helper import environ

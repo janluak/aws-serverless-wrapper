@@ -13,12 +13,15 @@ class TestDynamoDBResource(TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         os_environ["STAGE"] = "TEST"
-        os_environ["WRAPPER_CONFIG_FILE"] = f"{dirname(realpath(__file__))}/dynamodb_wrapper_config.json"
+        os_environ[
+            "WRAPPER_CONFIG_FILE"
+        ] = f"{dirname(realpath(__file__))}/dynamodb_wrapper_config.json"
 
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
 
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
         cls.table = Table(cls.table_name)
 
     @classmethod
@@ -34,11 +37,16 @@ class TestDynamoDBResource(TestCase):
 
 class TestSimpleDynamoDBResource(TestDynamoDBResource):
     table_name = "TableForTests"
-    test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
+    test_item = load_single(
+        f"{dirname(realpath(__file__))}/test_data/items/test_item.json"
+    )
     test_item_primary = {"primary_partition_key": "some_identification_string"}
 
     def test_get_item_from_resource(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
+
         database_resource = DatabaseResourceController()
 
         loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
@@ -46,13 +54,15 @@ class TestSimpleDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(self.test_item, loaded_item)
 
     def test_resource_returns_table(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
         database_resource = DatabaseResourceController()
 
         self.assertEqual(
-            type(Table(self.table_name)),
-            type(database_resource[self.table_name])
+            type(Table(self.table_name)), type(database_resource[self.table_name])
         )
 
 
@@ -63,11 +73,16 @@ class TestReusedDynamoDBResource(TestDynamoDBResource):
 
 class TestCachedDynamoDBResource(TestDynamoDBResource):
     table_name = "CachedTableForTests"
-    test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_cache_item.json")
+    test_item = load_single(
+        f"{dirname(realpath(__file__))}/test_data/items/test_cache_item.json"
+    )
     test_item_primary = {"primary_partition_key": "cache_identification_string"}
 
     def test_get_item_from_resource(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
+
         database_resource = DatabaseResourceController()
 
         loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
@@ -75,40 +90,57 @@ class TestCachedDynamoDBResource(TestDynamoDBResource):
         self.assertEqual(self.test_item, loaded_item)
 
     def test_get_item_from_cache_with_hash(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
+
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].get(**self.test_item_primary)
         self.table.delete(**self.test_item_primary)
 
         from aws_serverless_wrapper._helper import hash_dict
+
         item_hash = hash_dict(self.test_item)
 
-        loaded_item = database_resource[self.table_name].get(**self.test_item_primary, hash=item_hash)
+        loaded_item = database_resource[self.table_name].get(
+            **self.test_item_primary, hash=item_hash
+        )
 
         self.assertEqual(self.test_item, loaded_item)
 
     def test_get_changed_item_with_outdated_hash(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
+
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].get(**self.test_item_primary)
-        original_hash = database_resource[self.table_name]._hash_of(**self.test_item_primary)
+        original_hash = database_resource[self.table_name]._hash_of(
+            **self.test_item_primary
+        )
         changed_item = deepcopy(self.test_item)
         changed_item["some_float"] = 300281.382
         self.table.put(changed_item, overwrite=True)
 
         from aws_serverless_wrapper._helper import hash_dict
+
         changed_hash = hash_dict(changed_item)
 
         self.assertNotEqual(original_hash, changed_hash)
 
-        loaded_item = database_resource[self.table_name].get(**self.test_item_primary, hash=changed_hash)
+        loaded_item = database_resource[self.table_name].get(
+            **self.test_item_primary, hash=changed_hash
+        )
 
         self.assertEqual(changed_item, loaded_item)
 
     def test_put_item(self):
-        from aws_serverless_wrapper.database.noSQL.resource import DatabaseResourceController
+        from aws_serverless_wrapper.database.noSQL.resource import (
+            DatabaseResourceController,
+        )
+
         database_resource = DatabaseResourceController()
 
         database_resource[self.table_name].put(self.test_item, overwrite=True)
