@@ -12,7 +12,9 @@ def test_get_undefined_os_environ_mandatory():
     with catch_warnings(record=True) as w:
         simplefilter("always")
 
-        from aws_serverless_wrapper._helper import environ
+        from aws_serverless_wrapper._helper.environ_variables import Environ
+
+        environ = Environ()
 
         assert environ["unknown_entry"] == dict()
 
