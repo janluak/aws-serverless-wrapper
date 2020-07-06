@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AWS serverless wrapper config schema",
+  "description": "this schema is for testing a configuration file used to configure the aws_serverless_wrapper",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "AWS_REGION": {
+      "description": "specified region for AWS computing, normally provided by AWS_CONTEXT -> relevant for testing",
+      "type": "string",
+      "enum": [
+        "local",
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2",
+        "af-south-1",
+        "ap-east-1",
+        "ap-south-1",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ca-central-1",
+        "cn-north-1",
+        "cn-northwest-1",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "me-south-1",
+        "sa-east-1"
+      ]
+    },
+    "UnitTest": {
+      "description": "only used for flagging a test and not running in actual productive code",
+      "type": "boolean"
+    },
+    "WRAPPER_DATABASE": {
+      "description": "if databases are used by the wrapper configuration is set here",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "noSQL": {
+          "description": "if a noSQL database shall be configured",
+          "type": "object",
+          "properties": {
+            "MODEL": {
+              "description": "which noSQL database shall be set",
+              "type": "string",
+              "enum": [
+                "DynamoDB"
+              ]
+            },
+            "SCHEMA_ORIGIN": {
+              "description": "if a schema validation over data shall be done, where does the schema originate from?\nfile: load schema from a directory\nurl: load schema from a url\nraw: provide the schema directly in this file (or if you access the class handling the validation directly, passing the schema directly to the class",
+              "type": "string",
+              "enum": [
+                "file",
+                "url",
+                "raw"
+              ]
+            },
+            "SCHEMA_DIRECTORY": {
+              "description": "the file_path or url of the directory containing the schemas",
+              "type": "string"
+            },
+            "CACHED_TABLES": {
+              "description": "provide the names of tables to use the cache on\n(which have an external hash to verify if data has changed, see examples on how to use it)",
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "required": [
+            "MODEL"
+          ]
+        }
+      }
+    },
+    "API_INPUT_VERIFICATION": {
+      "description": "if input verification from API call shall be considered (e.g. for ReST calls)",
+      "type": "boolean"
+    },
+    "ERROR_OUTPUT": {
+      "description": "",
+      "type": "object",
+      "anyOf": [
+        {
+          "QUEUE": {
+            "description": "if error log shall be put to a queue, specify queue name here (without stage name)",
+            "type": "string"
+          }
+        },
+        {
+          "DATABASE": {
+            "description": "if error log shall be inserted into a database, specify database name here (without stage name)",
+            "type": "string"
+          }
+        },
+        {
+          "API_RESPONSE": {
+            "description": "if error log shall be returned in request response",
+            "type": "boolean"
+          }
+        }
+      ]
+    }
+  }
+}
