@@ -1,6 +1,39 @@
 from freezegun import freeze_time
 
 
+class Namespace:
+    """Simple object for storing attributes.
+
+    Implements equality by attribute names and values, and provides a simple
+    string representation.
+
+    Copied from argparse.ArgumentParser
+    """
+
+    def __init__(self, **kwargs):
+        for name in kwargs:
+            setattr(self, name, kwargs[name])
+
+    def __eq__(self, other):
+        if not isinstance(other, Namespace):
+            return NotImplemented
+        return vars(self) == vars(other)
+
+    def __contains__(self, key):
+        return key in self.__dict__
+
+
+context = Namespace(
+    **{
+        "aws_request_id": "uuid",
+        "log_group_name": "test/log/group",
+        "function_name": "test_function",
+    }
+)
+
+exception_line_no = 38
+
+
 def raise_exception(exception_text):
     raise Exception(exception_text)
 
@@ -29,12 +62,12 @@ def test_error_log_item_basic():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
     }
 
-    assert create_error_log_item() == reference_exception_log_item
+    assert create_error_log_item(context=context,) == reference_exception_log_item
 
 
 @freeze_time("2020-01-01")
@@ -43,27 +76,27 @@ def test_error_log_item_exception():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
-        "exception_line_no": 5,
+        "exception_line_no": exception_line_no,
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        "line 64, in test_error_log_item_exception    "
+        f"line {exception_line_no + 59}, in test_error_log_item_exception    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
-        "line 5, in raise_exception    raise "
+        f"line {exception_line_no}, in raise_exception    raise "
         "Exception(exception_text)",
     }
 
     try:
         raise_exception("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(exception=e)
+        actual_item = create_error_log_item(context=context, exception=e)
 
         assert (
             actual_item["exception_file"].split("/")[-1]
@@ -85,14 +118,16 @@ def test_error_log_item_message():
 
     exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "message": "some message for logging an error",
     }
 
     assert (
-        create_error_log_item(message="some message for logging an error")
+        create_error_log_item(
+            context=context, message="some message for logging an error"
+        )
         == exception_log_item
     )
 
@@ -103,20 +138,20 @@ def test_error_log_item_exception_additional_message():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
-        "exception_line_no": 5,
+        "exception_line_no": exception_line_no,
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        "line 125, in test_error_log_item_exception_additional_message    "
+        f"line {exception_line_no + 122}, in test_error_log_item_exception_additional_message    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
-        "line 5, in raise_exception    raise "
+        f"line {exception_line_no}, in raise_exception    raise "
         "Exception(exception_text)",
         "message": "some message for logging an error",
     }
@@ -125,7 +160,7 @@ def test_error_log_item_exception_additional_message():
         raise_exception("exception text")
     except Exception as e:
         actual_item = create_error_log_item(
-            exception=e, message="some message for logging an error"
+            context=context, exception=e, message="some message for logging an error"
         )
 
         assert (
@@ -148,28 +183,28 @@ def test_error_log_item_hierarchy_exception():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
-        "exception_line_no": 5,
+        "exception_line_no": exception_line_no,
         "exception_function": "raise_exception",
-        "exception_stack": '  File "test_error_logging.py", line 170, in '
+        "exception_stack": f'  File "test_error_logging.py", line {exception_line_no + 167}, in '
         "test_error_log_item_hierarchy_exception    "
         'raise_exception_within("exception text")  File '
-        '"test_error_logging.py", line 9, in '
+        f'"test_error_logging.py", line {exception_line_no + 4}, in '
         "raise_exception_within    "
         "raise_exception(exception_text)  File "
-        '"test_error_logging.py", line 5, in raise_exception    '
+        f'"test_error_logging.py", line {exception_line_no}, in raise_exception    '
         "raise Exception(exception_text)",
     }
 
     try:
         raise_exception_within("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(exception=e)
+        actual_item = create_error_log_item(context=context, exception=e)
 
         assert (
             actual_item["exception_file"].split("/")[-1]
@@ -199,14 +234,14 @@ def test_error_log_item_with_event_data():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "event_data": test_example_event_data,
     }
 
     assert (
-        create_error_log_item(event_data=test_example_event_data)
+        create_error_log_item(context=context, event_data=test_example_event_data)
         == reference_exception_log_item
     )
 
@@ -225,20 +260,20 @@ def test_error_log_item_with_exception_and_event_data():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": dict(),
-        "log_group": dict(),
-        "function_name": dict(),
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
-        "exception_line_no": 5,
+        "exception_line_no": exception_line_no,
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        "line 247, in test_error_log_item_with_exception_and_event_data    "
+        f"line {exception_line_no + 244}, in test_error_log_item_with_exception_and_event_data    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
-        "line 5, in raise_exception    raise "
+        f"line {exception_line_no}, in raise_exception    raise "
         "Exception(exception_text)",
         "event_data": test_example_event_data,
     }
@@ -247,7 +282,7 @@ def test_error_log_item_with_exception_and_event_data():
         raise_exception("exception text")
     except Exception as e:
         actual_item = create_error_log_item(
-            event_data=test_example_event_data, exception=e
+            context=context, event_data=test_example_event_data, exception=e
         )
 
         assert (

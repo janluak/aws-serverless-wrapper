@@ -1,18 +1,18 @@
-from . import environ
-
-
 __all__ = ["create_error_log_item"]
 
 
 def create_error_log_item(
-    exception: Exception = None, message: str = str(), event_data: dict = dict()
+    context,
+    exception: Exception = None,
+    message: str = str(),
+    event_data: dict = dict(),
 ):
     from datetime import datetime
 
     item = {
-        "request_id": environ["AWS_LAMBDA_LOG_STREAM_NAME"],
-        "log_group": environ["AWS_LAMBDA_LOG_GROUP_NAME"],
-        "function_name": environ["AWS_LAMBDA_FUNCTION_NAME"],
+        "request_id": context.aws_request_id,
+        "log_group": context.log_group_name,
+        "function_name": context.function_name,
         "timestamp": str(datetime.utcnow()),
     }
 
