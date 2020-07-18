@@ -1,4 +1,6 @@
 from freezegun import freeze_time
+from testfixtures import LogCapture
+from os import path
 
 
 class Namespace:
@@ -31,7 +33,7 @@ context = Namespace(
     }
 )
 
-exception_line_no = 38
+exception_line_no = 40
 
 
 def raise_exception(exception_text):
@@ -58,7 +60,7 @@ def delete_origin_paths_from_traceback(string):
 
 @freeze_time("2020-01-01")
 def test_error_log_item_basic():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
@@ -67,12 +69,12 @@ def test_error_log_item_basic():
         "function_name": "test_function",
     }
 
-    assert create_error_log_item(context=context,) == reference_exception_log_item
+    assert _create_error_log_item(context=context,) == reference_exception_log_item
 
 
 @freeze_time("2020-01-01")
 def test_error_log_item_exception():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
@@ -96,7 +98,7 @@ def test_error_log_item_exception():
     try:
         raise_exception("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(context=context, exception=e)
+        actual_item = _create_error_log_item(context=context, exception=e)
 
         assert (
             actual_item["exception_file"].split("/")[-1]
@@ -114,7 +116,7 @@ def test_error_log_item_exception():
 
 @freeze_time("2020-01-01")
 def test_error_log_item_message():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
@@ -125,7 +127,7 @@ def test_error_log_item_message():
     }
 
     assert (
-        create_error_log_item(
+        _create_error_log_item(
             context=context, message="some message for logging an error"
         )
         == exception_log_item
@@ -134,7 +136,7 @@ def test_error_log_item_message():
 
 @freeze_time("2020-01-01")
 def test_error_log_item_exception_additional_message():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
@@ -159,7 +161,7 @@ def test_error_log_item_exception_additional_message():
     try:
         raise_exception("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(
+        actual_item = _create_error_log_item(
             context=context, exception=e, message="some message for logging an error"
         )
 
@@ -179,7 +181,7 @@ def test_error_log_item_exception_additional_message():
 
 @freeze_time("2020-01-01")
 def test_error_log_item_hierarchy_exception():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
@@ -204,7 +206,7 @@ def test_error_log_item_hierarchy_exception():
     try:
         raise_exception_within("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(context=context, exception=e)
+        actual_item = _create_error_log_item(context=context, exception=e)
 
         assert (
             actual_item["exception_file"].split("/")[-1]
@@ -222,7 +224,7 @@ def test_error_log_item_hierarchy_exception():
 
 @freeze_time("2020-01-01")
 def test_error_log_item_with_event_data():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     test_example_event_data = {
         "httpMethod": "POST",
@@ -241,14 +243,14 @@ def test_error_log_item_with_event_data():
     }
 
     assert (
-        create_error_log_item(context=context, event_data=test_example_event_data)
+        _create_error_log_item(context=context, event_data=test_example_event_data)
         == reference_exception_log_item
     )
 
 
 @freeze_time("2020-01-01")
 def test_error_log_item_with_exception_and_event_data():
-    from aws_serverless_wrapper._helper import create_error_log_item
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     test_example_event_data = {
         "httpMethod": "POST",
@@ -281,7 +283,7 @@ def test_error_log_item_with_exception_and_event_data():
     try:
         raise_exception("exception text")
     except Exception as e:
-        actual_item = create_error_log_item(
+        actual_item = _create_error_log_item(
             context=context, event_data=test_example_event_data, exception=e
         )
 
@@ -297,3 +299,79 @@ def test_error_log_item_with_exception_and_event_data():
         )
 
         assert actual_item == reference_exception_log_item
+
+
+@freeze_time("2020-01-01")
+def test_log_exception_to_logging_no_event_data():
+    from aws_serverless_wrapper._helper import log_exception
+
+    reference_exception_log_item = {
+        "request_id": "uuid",
+        "log_group": "test/log/group",
+        "function_name": "test_function",
+        "timestamp": "2020-01-01 00:00:00",
+        "exception_type": "Exception",
+        "exception_text": "exception text",
+        "exception_file": path.realpath(__file__),
+        "exception_line_no": exception_line_no,
+        "exception_function": "raise_exception",
+        "exception_stack": "  File "
+        f'"{path.realpath(__file__)}", '
+        f"line {exception_line_no + 289}, in {test_log_exception_to_logging_no_event_data.__name__}    "
+        'raise_exception("exception text")  File '
+        f'"{path.realpath(__file__)}", '
+        f"line {exception_line_no}, in raise_exception    raise "
+        "Exception(exception_text)",
+    }
+
+    with LogCapture() as log_capture:
+        try:
+            raise_exception("exception text")
+        except Exception as e:
+            log_exception(exception=e, event_data=dict(), context=context)
+
+        log_capture.check(
+            (
+                "aws_serverless_wrapper._helper.error_logging",
+                "ERROR",
+                str(reference_exception_log_item),
+            )
+        )
+
+
+from pytest import mark
+
+
+@mark.skip("not implemented")
+def test_log_exception_to_noSQL():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_exception_to_SQL():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_exception_to_queue():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_api_validation_to_logging():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_api_validation_to_noSQL():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_api_validation_to_SQL():
+    pass
+
+
+@mark.skip("not implemented")
+def test_log_api_validation_to_queue():
+    pass

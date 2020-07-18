@@ -1,7 +1,13 @@
-__all__ = ["create_error_log_item"]
+from . import environ
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-def create_error_log_item(
+__all__ = ["log_exception", "log_api_validation_error"]
+
+
+def _create_error_log_item(
     context,
     exception: Exception = None,
     message: str = str(),
@@ -51,3 +57,38 @@ def create_error_log_item(
         item.update({"event_data": event_data})
 
     return item
+
+
+def _log_error(exception, config, event_data, context, message=None):
+    error_log_item = _create_error_log_item(
+        context=context,
+        exception=exception,
+        event_data=event_data if config["LOG_EVENT_DATA"] else None,
+        message=message,
+    )
+
+    print("LOGGING TO LOGGER")
+    logger.exception(error_log_item)
+
+    if config["QUEUE"]:
+        pass
+    if config["DATABASE"]:
+        if log_table_name := config["DATABASE"]["noSQL"]:
+            from ..database.noSQL.resource import database_resource
+
+            database_resource[log_table_name].put(error_log_item)
+
+        if log_table_name := config["DATABASE"]["SQL"]:
+            raise NotImplementedError
+
+
+def log_api_validation_error(validation_exception, event_data, context):
+    relevant_environ = environ["API_INPUT_VERIFICATION"]["LOG_ERRORS"]
+
+    _log_error(validation_exception, relevant_environ, event_data, context)
+
+
+def log_exception(exception, event_data, context, message=None):
+    relevant_environ = environ["ERROR_OUTPUT"]
+
+    _log_error(exception, relevant_environ, event_data, context, message)
