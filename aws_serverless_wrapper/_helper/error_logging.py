@@ -81,7 +81,8 @@ def _log_error(exception, config, event_data, context, message=None):
         if log_table_name := config["DATABASE"]["SQL"]:
             raise NotImplementedError
 
-    return error_log_item
+    if config["API_RESPONSE"]:
+        return error_log_item
 
 
 def log_api_validation_error(validation_exception, event_data, context):
@@ -91,6 +92,6 @@ def log_api_validation_error(validation_exception, event_data, context):
 
 
 def log_exception(exception, event_data, context, message=None):
-    relevant_environ = environ["ERROR_OUTPUT"]
+    relevant_environ = environ["ERROR_LOG"]
 
     return _log_error(exception, relevant_environ, event_data, context, message)

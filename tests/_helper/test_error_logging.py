@@ -273,6 +273,12 @@ def test_error_log_item_with_exception_and_event_data():
 
 @freeze_time("2020-01-01")
 def test_log_exception_to_logging_no_event_data():
+    from aws_serverless_wrapper._helper.environ_variables import (
+        environ,
+        change_dict_to_no_except_dict,
+    )
+
+    environ["ERROR_LOG"] = change_dict_to_no_except_dict({"API_RESPONSE": True})
     from aws_serverless_wrapper._helper import log_exception
 
     reference_exception_log_item = {
@@ -287,7 +293,7 @@ def test_log_exception_to_logging_no_event_data():
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         f'"{path.realpath(__file__)}", '
-        f"line {exception_line_no + 289}, in {test_log_exception_to_logging_no_event_data.__name__}    "
+        f"line {exception_line_no + 295}, in {test_log_exception_to_logging_no_event_data.__name__}    "
         'raise_exception("exception text")  File '
         f'"{path.realpath(__file__)}", '
         f"line {exception_line_no}, in raise_exception    raise "
