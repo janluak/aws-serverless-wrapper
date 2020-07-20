@@ -328,7 +328,7 @@ def test_log_exception_to_logging_no_event_data():
         try:
             raise_exception("exception text")
         except Exception as e:
-            log_exception(exception=e, event_data=dict(), context=context)
+            log_item = log_exception(exception=e, event_data=dict(), context=context)
 
         log_capture.check(
             (
@@ -337,6 +337,8 @@ def test_log_exception_to_logging_no_event_data():
                 str(reference_exception_log_item),
             )
         )
+
+        assert log_item == reference_exception_log_item
 
 
 from pytest import mark
