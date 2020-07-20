@@ -16,14 +16,14 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
     parser.add_argument(
-        "wrapper_config_file",
+        "--wrapper-config-check",
         nargs="+",
         type=str,
         help="specify at least one configuration file to check the schema for",
     )
     args = parser.parse_args()
 
-    for file in args.wrapper_config_file:
+    for file in args.wrapper_config_check:
         check_wrapper_config(file)
 
     print("\n\t\tSUCCESS\n\tyour configurations are correct\n")
