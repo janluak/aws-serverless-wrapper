@@ -17,8 +17,8 @@ class APIDataValidator:
     ):
         self.__httpMethod = api_data["httpMethod"]
 
-        file = self.__insert_http_method_to_origin(file)
-        url = self.__insert_http_method_to_origin(url)
+        file = self.__craft_full_origin(file)
+        url = self.__craft_full_origin(url)
 
         try:
             self.__schema_validator = SchemaValidator(file, url, raw)
@@ -48,11 +48,30 @@ class APIDataValidator:
     def data(self):
         return self.__data
 
+    def __craft_full_origin(self, origin):
+        if origin:
+            if origin[-1] == "/":
+                origin = self.__insert_api_name_to_origin(origin)
+
+            return self.__insert_http_method_to_origin(origin)
+
+    @staticmethod
+    def __insert_api_name_to_origin(origin):
+        from inspect import stack
+
+        parent_function = stack()[3][3]
+
+        origin += parent_function
+
+        return origin
+
     def __insert_http_method_to_origin(self, origin):
-        if origin and self.__httpMethod not in origin:
-            origin = (
-                ".".join(origin.split(".")[:-1]) + "-" + self.__httpMethod + ".json"
-            )
+        if self.__httpMethod not in origin:
+            if ".json" == origin[-5:]:
+                origin = origin[:-5]
+
+            origin += "-" + self.__httpMethod + ".json"
+
         return origin
 
     def __check_for_required_parameter_types(self):

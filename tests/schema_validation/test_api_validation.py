@@ -1,10 +1,11 @@
 from unittest import TestCase
 from os.path import dirname, realpath
 from datesy.file_IO.json_file import load_single
+from os import getcwd, chdir
 
 
 class TestAPIValidation(TestCase):
-    def test_basic(self):
+    def test_basic_with_schema_file(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
             APIDataValidator,
         )
@@ -14,6 +15,66 @@ class TestAPIValidation(TestCase):
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
         APIDataValidator(file=api_schema_file, api_data=api_data)
+
+    def test_basic_with_schema_file_including_http_method(self):
+        from aws_serverless_wrapper.schema_validation.api_validation import (
+            APIDataValidator,
+        )
+
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/api_basic-POST.json"
+        )
+        api_data = load_single(
+            f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
+        )
+        APIDataValidator(file=api_schema_file, api_data=api_data)
+
+    def test_basic_with_schema_directory(self):
+        from aws_serverless_wrapper.schema_validation.api_validation import (
+            APIDataValidator,
+        )
+
+        api_schema_directory = f"{dirname(realpath(__file__))}/test_data/api/"
+        api_data = load_single(
+            f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
+        )
+
+        def api_basic():
+            APIDataValidator(file=api_schema_directory, api_data=api_data)
+
+        api_basic()
+
+    def test_basic_with_relative_schema_file(self):
+        from aws_serverless_wrapper.schema_validation.api_validation import (
+            APIDataValidator,
+        )
+
+        api_schema_file = "./test_data/api/api_basic.json"
+        api_data = load_single("./test_data/api/request_basic.json")
+        actual_cwd = getcwd()
+        try:
+            chdir(dirname(realpath(__file__)))
+            APIDataValidator(file=api_schema_file, api_data=api_data)
+        finally:
+            chdir(actual_cwd)
+
+    def test_basic_with_relative_schema_directory(self):
+        from aws_serverless_wrapper.schema_validation.api_validation import (
+            APIDataValidator,
+        )
+
+        api_schema_directory = "./test_data/api/"
+        api_data = load_single("./test_data/api/request_basic.json")
+
+        def api_basic():
+            APIDataValidator(file=api_schema_directory, api_data=api_data)
+
+        actual_cwd = getcwd()
+        try:
+            chdir(dirname(realpath(__file__)))
+            api_basic()
+        finally:
+            chdir(actual_cwd)
 
     def test_basic_with_wrong_httpMethod(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
