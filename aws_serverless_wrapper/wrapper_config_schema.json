@@ -56,17 +56,10 @@
               ]
             },
             "SCHEMA_ORIGIN": {
-              "description": "if a schema validation over data shall be done, where does the schema originate from?\nfile: load schema from a directory\nurl: load schema from a url\nraw: provide the schema directly in this file (or if you access the class handling the validation directly, passing the schema directly to the class",
-              "type": "string",
-              "enum": [
-                "file",
-                "url",
-                "raw"
-              ]
+              "$ref": "#/definitions/schemas/properties/origin"
             },
             "SCHEMA_DIRECTORY": {
-              "description": "the file_path or url of the directory containing the schemas",
-              "type": "string"
+              "$ref": "#/definitions/schemas/properties/directory"
             },
             "CACHED_TABLES": {
               "description": "provide the names of tables to use the cache on\n(which have an external hash to verify if data has changed, see examples on how to use it)",
@@ -86,10 +79,48 @@
     },
     "API_INPUT_VERIFICATION": {
       "description": "if input verification from API call shall be considered (e.g. for ReST calls)",
-      "type": "boolean"
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SCHEMA_ORIGIN": {
+          "$ref": "#/definitions/schemas/properties/origin"
+        },
+        "SCHEMA_DIRECTORY": {
+          "$ref": "#/definitions/schemas/properties/directory"
+        },
+        "LOG_ERRORS": {
+          "description": "if failed validations shall be logged",
+          "$ref": "#/definitions/error_log_config"
+        }
+      }
     },
-    "ERROR_OUTPUT": {
-      "description": "",
+    "ERROR_LOG": {
+      "description": "how shall internal errors be logged?",
+      "$ref": "#/definitions/error_log_config"
+    }
+  },
+  "definitions": {
+    "schemas": {
+      "type": "object",
+      "properties": {
+        "origin": {
+          "description": "if a schema validation over data shall be done, where does the schema originate from?\nfile: load schema from a directory\nurl: load schema from a url\nraw: provide the schema directly in this file (or if you access the class handling the validation directly, passing the schema directly to the class",
+          "type": "string",
+          "enum": [
+            "file",
+            "url",
+            "raw"
+          ]
+        },
+        "directory": {
+          "description": "the file_path or url of the directory containing the schemas",
+          "type": "string",
+          "pattern": "[0-9a-zA-Z\/.]*(\/|.json)$"
+        }
+      }
+    },
+    "error_log_config": {
+      "description": "basic configuration for logging errors",
       "type": "object",
       "anyOf": [
         {
@@ -100,13 +131,28 @@
         },
         {
           "DATABASE": {
-            "description": "if error log shall be inserted into a database, specify database name here (without stage name)",
-            "type": "string"
+            "description": "if error log shall be inserted into a database, specify database type and name here (without stage name)",
+            "type": "object",
+            "properties": {
+              "noSQL": {
+                "type": "string"
+              },
+              "SQL": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
           }
         },
         {
           "API_RESPONSE": {
             "description": "if error log shall be returned in request response",
+            "type": "boolean"
+          }
+        },
+        {
+          "LOG_EVENT_DATA": {
+            "description": "if the event data shall be contained in the error log",
             "type": "boolean"
           }
         }
