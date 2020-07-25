@@ -49,11 +49,13 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = "./test_data/api/api_basic.json"
-        api_data = load_single("./test_data/api/request_basic.json")
         actual_cwd = getcwd()
         try:
             chdir(dirname(realpath(__file__)))
+
+            api_schema_file = "./test_data/api/api_basic.json"
+            api_data = load_single("./test_data/api/request_basic.json")
+
             APIDataValidator(file=api_schema_file, api_data=api_data)
         finally:
             chdir(actual_cwd)
@@ -63,15 +65,15 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_directory = "./test_data/api/"
-        api_data = load_single("./test_data/api/request_basic.json")
-
-        def api_basic():
-            APIDataValidator(file=api_schema_directory, api_data=api_data)
-
         actual_cwd = getcwd()
         try:
             chdir(dirname(realpath(__file__)))
+            api_schema_directory = "./test_data/api/"
+            api_data = load_single("./test_data/api/request_basic.json")
+
+            def api_basic():
+                APIDataValidator(file=api_schema_directory, api_data=api_data)
+
             api_basic()
         finally:
             chdir(actual_cwd)
