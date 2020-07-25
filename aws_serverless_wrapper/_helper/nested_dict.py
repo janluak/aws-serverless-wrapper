@@ -1,6 +1,7 @@
 from hashlib import blake2b
 from json import dumps
 from .environ_variables import environ
+from collections.abc import Mapping
 
 
 def delete_keys_in_nested_dict(nested, dict_keys_to_delete):
@@ -42,3 +43,12 @@ def hash_dict(value):
         str.encode(dumps(value, sort_keys=True)),
         digest_size=environ["dict_hash_digest_size"],
     ).hexdigest()
+
+
+def update_nested_dict(original_dict, new_values):
+    for k, v in new_values.items():
+        if isinstance(v, Mapping):
+            original_dict[k] = update_nested_dict(original_dict.get(k, {}), v)
+        else:
+            original_dict[k] = v
+    return original_dict
