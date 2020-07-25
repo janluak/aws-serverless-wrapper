@@ -1,5 +1,3 @@
-from ....schema_validation import SchemaValidator
-from jsonschema.exceptions import ValidationError
 from ...._helper.traverse_dict import (
     decimal_dict_to_float,
     float_dict_to_decimal,
@@ -7,130 +5,22 @@ from ...._helper.traverse_dict import (
 from ...._helper import environ
 from boto3 import resource
 from copy import deepcopy
-from inspect import stack
 from .resource_config import resource_config
+from .._base_class import NoSQLTable
 
 dynamo_db_resource = resource("dynamodb", **resource_config)
 
 __all__ = ["Table"]
 
 
-class CustomExceptionRaiser:
-    def __init__(self, table):
-        self.table = table
-
-    def not_found_message(self, not_found_item):
-        raise FileNotFoundError(
-            {
-                "statusCode": 404,
-                "body": f"{not_found_item} not found in {self.table.name}",
-                "headers": {"Content-Type": "text/plain"},
-            }
-        )
-
-    def _primary_key_rudimentary_message(self, provided_message):
-        raise LookupError(
-            {
-                "statusCode": 400,
-                "body": f"Wrong primary for {self.table.name}: "
-                f"required for table is {self.table.pk}; {provided_message}",
-                "headers": {"Content-Type": "text/plain"},
-            }
-        )
-
-    def missing_primary_key(self, missing):
-        raise self._primary_key_rudimentary_message(f"missing {missing}")
-
-    def wrong_primary_key(self, given):
-        raise self._primary_key_rudimentary_message(f"given {given}")
-
-    def wrong_data_type(self, error: ValidationError):
-        if error.validator == "type":
-            response = {
-                "statusCode": 415,
-                "body": f"Wrong value type in {self.table.name} for key={'/'.join(error.absolute_path)}:\n"
-                f"{error.message}.",
-                "headers": {"Content-Type": "text/plain"},
-            }
-            if "enum" in error.schema and error.schema["enum"]:
-                response["body"] += f"\nenum: {error.schema['enum']}"
-        elif error.validator == "required":
-            response = {
-                "statusCode": 400,
-                "body": f"{error.message} for table {self.table.name} and is missing",
-                "headers": {"Content-Type": "text/plain"},
-            }
-        else:
-            response = {"statusCode": 500}
-
-        raise TypeError(response)
-
-    def item_already_existing(self, item):
-        item = deepcopy(item)
-        raise FileExistsError(
-            {
-                "statusCode": 409,
-                "body": f"Item is already existing.\nTable: {self.table.name}\nItem: {decimal_dict_to_float(item)}",
-                "headers": {"Content-Type": "text/plain"},
-            }
-        )
-
-
-class Table:
+class Table(NoSQLTable):
     def __init__(self, table_name):
-        self.__table_name = table_name
-        self.__error_messages = CustomExceptionRaiser(self)
+        super().__init__(table_name)
         self.__table = dynamo_db_resource.Table(f"{environ['STAGE']}-{table_name}")
-
-        self.__schema_validator = SchemaValidator(
-            **{
-                environ["WRAPPER_DATABASE"]["noSQL"]["SCHEMA_ORIGIN"].lower(): environ[
-                    "WRAPPER_DATABASE"
-                ]["noSQL"]["SCHEMA_DIRECTORY"]
-                + self.__table_name
-            }
-        )
-
-    @property
-    def name(self):
-        return self.__table_name
-
-    @property
-    def pk(self):
-        return self.__schema_validator.schema["default"]
-
-    @property
-    def schema(self):
-        return self.__schema_validator.schema
 
     @property
     def table(self):
         return self.__table
-
-    def _validate_input(self, given_input):
-        if "update" in stack()[1].function:
-            self._primary_key_checker(given_input[0])
-            try:
-                self.__schema_validator.validate(given_input[1], no_required_check=True)
-            except ValidationError as e:
-                self.__error_messages.wrong_data_type(e)
-
-        elif "put" == stack()[1].function:
-            try:
-                self.__schema_validator.validate(given_input)
-            except ValidationError as e:
-                self.__error_messages.wrong_data_type(e)
-
-        else:
-            self._primary_key_checker(given_input)
-
-    def _primary_key_checker(self, given_primaries):
-        if not all(pk in given_primaries for pk in self.pk):
-            self.__error_messages.missing_primary_key(
-                [key for key in self.pk if key not in given_primaries]
-            )
-        elif len(given_primaries) > len(self.pk):
-            self.__error_messages.wrong_primary_key(given_primaries)
 
     def describe(self):
         from boto3 import client
@@ -147,7 +37,7 @@ class Table:
         response = self.__table.get_item(Key=primary_dict)
 
         if "Item" not in response:
-            self.__error_messages.not_found_message(primary_dict)
+            self.custom_exception.not_found_message(primary_dict)
         else:
             try:
                 return decimal_dict_to_float(response["Item"])
@@ -231,14 +121,14 @@ class Table:
         self._validate_input(item)
 
         try:
-            item = deepcopy(item)
+            item_copy = deepcopy(item)
             self.__table.put_item(
-                Item=float_dict_to_decimal(item),
+                Item=float_dict_to_decimal(item_copy),
                 ConditionExpression=" and ".join(
                     [f"attribute_not_exists({pk})" for pk in self.pk]
                 ),
             ) if not overwrite else self.__table.put_item(
-                Item=float_dict_to_decimal(item)
+                Item=float_dict_to_decimal(item_copy)
             )
 
         except Exception as e:
@@ -246,7 +136,7 @@ class Table:
                 e.__dict__["response"]["Error"]["Code"]
                 == "ConditionalCheckFailedException"
             ):
-                self.__error_messages.item_already_existing(item)
+                self.custom_exception.item_already_existing(item)
             else:
                 raise e
 
