@@ -89,6 +89,13 @@ class TestCachedDynamoDBResource(TestDynamoDBResource):
 
         self.assertEqual(self.test_item, loaded_item)
 
+    def test_get_item_from_resource_direct_import(self):
+        from aws_serverless_wrapper.database.noSQL import database_resource
+
+        loaded_item = database_resource[self.table_name].get(**self.test_item_primary)
+
+        self.assertEqual(self.test_item, loaded_item)
+
     def test_get_item_from_cache_with_hash(self):
         from aws_serverless_wrapper.database.noSQL.resource import (
             DatabaseResourceController,
