@@ -67,7 +67,6 @@ def _log_error(exception, config, event_data, context, message=None):
         message=message,
     )
 
-    print("LOGGING TO LOGGER")
     logger.exception(error_log_item)
 
     if config["QUEUE"]:
