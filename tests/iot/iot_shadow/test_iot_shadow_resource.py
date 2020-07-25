@@ -33,9 +33,11 @@ def test_get_type_from_resource(iot_shadow_config):
     )
 
     from aws_serverless_wrapper.iot.iot_resource import iot_shadow_resource
-    from aws_serverless_wrapper.iot.iot_shadow import IoTShadowStatic
+    from aws_serverless_wrapper.iot.iot_shadow_handler import IoTShadowStaticHandler
 
-    assert issubclass(iot_shadow_resource[test_thing_name].__class__, IoTShadowStatic)
+    assert issubclass(
+        iot_shadow_resource[test_thing_name].__class__, IoTShadowStaticHandler
+    )
 
 
 @mock_iotdata
@@ -49,4 +51,4 @@ def test_get_shadow_from_resource(iot_shadow_config):
 
     from aws_serverless_wrapper.iot.iot_resource import iot_shadow_resource
 
-    assert iot_shadow_resource[test_thing_name].state == test_state
+    assert iot_shadow_resource[test_thing_name].reported == test_state
