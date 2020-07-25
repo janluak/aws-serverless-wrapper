@@ -270,3 +270,18 @@ class TestUpdateNestedDict(TestNestedDict):
         )
         assert origin_dict == verify_dict
         assert origin_dict["some_dict"] == verify_dict["some_dict"]
+
+    def test_update_part_of_nested_key_mutable(self):
+
+        from aws_serverless_wrapper._helper import update_nested_dict
+
+        origin_dict = deepcopy(reference_dict)
+        verify_dict = deepcopy(reference_dict)
+
+        verify_dict["some_nested_dict"]["KEY1"]["subKEY1"] = "new Value"
+
+        update_nested_dict(
+            origin_dict["some_nested_dict"], {"KEY1": {"subKEY1": "new Value"}}
+        )
+        assert origin_dict == verify_dict
+        assert origin_dict["some_dict"] == verify_dict["some_dict"]
