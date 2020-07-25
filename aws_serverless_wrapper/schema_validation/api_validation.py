@@ -121,7 +121,9 @@ class APIDataValidator:
         except ValidationError as err:
             raise TypeError(
                 {
-                    "statusCode": 400 if "httpMethod" != err.path[0] else 405,
+                    "statusCode": 400
+                    if (len(err.path) == 0 or "httpMethod" != err.path[0])
+                    else 405,
                     "body": err.__str__(),
                     "headers": {"Content-Type": "text/plain"},
                 }
