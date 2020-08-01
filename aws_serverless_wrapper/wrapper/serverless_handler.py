@@ -93,7 +93,7 @@ class __LambdaHandler(ABC):
                 {
                     "headers": {"Content-Type": "application/json"},
                     "body": {
-                        "basic": "internal server error",
+                        "basic": basic_body_message,
                         "error_log_item": error_log_item,
                     },
                 }
