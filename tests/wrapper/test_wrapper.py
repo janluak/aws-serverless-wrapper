@@ -1,7 +1,4 @@
-from aws_serverless_wrapper._helper.environ_variables import (
-    environ,
-    change_dict_to_no_except_dict,
-)
+from aws_serverless_wrapper._helper.environ_variables import environ
 from datesy.file_IO.json_file import load_single
 from .._helper import context
 from pytest import fixture, raises, mark
@@ -110,7 +107,7 @@ def test_class_wrong_base_class(run_from_file_directory):
 def test_class_base_class_missing_handler(run_from_file_directory):
     from aws_serverless_wrapper import aws_serverless_wrapper, ServerlessBaseClass
 
-    environ["ERROR_LOG"] = change_dict_to_no_except_dict({"API_RESPONSE": True})
+    environ["ERROR_LOG"] = {"API_RESPONSE": True}
 
     @aws_serverless_wrapper
     class api_basic(ServerlessBaseClass):

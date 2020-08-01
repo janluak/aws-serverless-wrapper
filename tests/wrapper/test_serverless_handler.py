@@ -1,10 +1,7 @@
 from aws_serverless_wrapper.testing import predefined_context as context
 from os.path import dirname, realpath
 from os import chdir, getcwd
-from aws_serverless_wrapper._helper.environ_variables import (
-    environ,
-    change_dict_to_no_except_dict,
-)
+from aws_serverless_wrapper._helper.environ_variables import environ
 from aws_serverless_wrapper.wrapper.base_class import ServerlessBaseClass
 from pytest import fixture
 from datesy.file_IO.json_file import load_single
@@ -58,7 +55,7 @@ def test_function_occurring_exception_with_error_log(run_from_file_directory):
 
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    environ["ERROR_LOG"] = change_dict_to_no_except_dict({"API_RESPONSE": True})
+    environ["ERROR_LOG"] = {"API_RESPONSE": True}
 
     from aws_serverless_wrapper.wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
@@ -182,7 +179,7 @@ def test_class_occurring_exception_with_error_log(run_from_file_directory):
 
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    environ["ERROR_LOG"] = change_dict_to_no_except_dict({"API_RESPONSE": True})
+    environ["ERROR_LOG"] = {"API_RESPONSE": True}
 
     from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
 

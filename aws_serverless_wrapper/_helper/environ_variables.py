@@ -74,7 +74,7 @@ class Environ:
                 return NoExceptDict()
 
     def __setitem__(self, key, value):
-        self.__config[key] = value
+        self.__config[key] = change_dict_to_no_except_dict(value)
 
     def __iter__(self):
         if self.__config_file != os_environ["WRAPPER_CONFIG_FILE"]:

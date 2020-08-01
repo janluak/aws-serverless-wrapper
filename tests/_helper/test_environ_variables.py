@@ -48,6 +48,19 @@ class TestEmptyEnviron(TestEnvironVariables):
         environ["new_key"] = "new_value"
         self.assertEqual("new_value", environ["new_key"])
 
+    def test_set_no_except_dict(self):
+        from aws_serverless_wrapper._helper import environ
+
+        self.assertEqual(dict(), environ["new_dict"])
+        environ["new_dict"] = {"key1": {"key1.1": "value1"}, "key2": "value2"}
+        self.assertEqual("value1", environ["new_dict"]["key1"]["key1.1"])
+
+        from aws_serverless_wrapper._helper.environ_variables import NoExceptDict
+
+        empty_entry = environ["new_dict"]["key1"]["unknown_key"]
+        self.assertIsInstance(empty_entry, NoExceptDict)
+        self.assertEqual(empty_entry, dict())
+
 
 class TestConfiguredEnviron(TestEnvironVariables):
     @classmethod
