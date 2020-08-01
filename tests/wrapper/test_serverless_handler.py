@@ -1,4 +1,4 @@
-from .._helper import context
+from aws_serverless_wrapper.testing import predefined_context as context
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from aws_serverless_wrapper._helper.environ_variables import (
@@ -71,13 +71,15 @@ def test_function_occurring_exception_with_error_log(run_from_file_directory):
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}
     assert len(response["body"]) == 2
-    assert len(response["body"]["error_log_item"]) == 10
+    assert len(response["body"]["error_log_item"]) == 12
 
     assert response["body"]["basic"] == "internal server error"
     assert set(response["body"]["error_log_item"].keys()) == {
-        "request_id",
-        "log_group",
-        "function_name",
+        "aws_request_id",
+        "aws_log_group",
+        "lambda_name",
+        "service_name",
+        "function_version",
         "timestamp",
         "exception_type",
         "exception_text",
@@ -191,13 +193,15 @@ def test_class_occurring_exception_with_error_log(run_from_file_directory):
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}
     assert len(response["body"]) == 2
-    assert len(response["body"]["error_log_item"]) == 10
+    assert len(response["body"]["error_log_item"]) == 12
 
     assert response["body"]["basic"] == "internal server error"
     assert set(response["body"]["error_log_item"].keys()) == {
-        "request_id",
-        "log_group",
-        "function_name",
+        "aws_request_id",
+        "aws_log_group",
+        "lambda_name",
+        "service_name",
+        "function_version",
         "timestamp",
         "exception_type",
         "exception_text",

@@ -1,9 +1,15 @@
 from freezegun import freeze_time
 from testfixtures import LogCapture
 from os import path
-from .context_for_tests import context
+from aws_serverless_wrapper.testing import predefined_context as context
 
-exception_line_no = 10
+exception_line_no = 16
+
+
+def raise_exception_with_http_status(code, body, content_type):
+    raise Exception(
+        {"statusCode": code, "body": body, "headers": {"Content-Type": content_type}}
+    )
 
 
 def raise_exception(exception_text):
@@ -34,9 +40,11 @@ def test_error_log_item_basic():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "lambda_name": "test_function",
+        "service_name": "group",
+        "function_version": "$LATEST",
     }
 
     assert _create_error_log_item(context=context,) == reference_exception_log_item
@@ -48,9 +56,11 @@ def test_error_log_item_exception():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "lambda_name": "test_function",
+        "service_name": "group",
+        "function_version": "$LATEST",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
@@ -58,7 +68,7 @@ def test_error_log_item_exception():
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        f"line {exception_line_no + 59}, in test_error_log_item_exception    "
+        f"line {exception_line_no + 63}, in test_error_log_item_exception    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
         f"line {exception_line_no}, in raise_exception    raise "
@@ -90,9 +100,11 @@ def test_error_log_item_message():
 
     exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "lambda_name": "test_function",
+        "service_name": "group",
+        "function_version": "$LATEST",
         "message": "some message for logging an error",
     }
 
@@ -110,9 +122,11 @@ def test_error_log_item_exception_additional_message():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "lambda_name": "test_function",
+        "service_name": "group",
+        "function_version": "$LATEST",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
@@ -120,7 +134,7 @@ def test_error_log_item_exception_additional_message():
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        f"line {exception_line_no + 122}, in test_error_log_item_exception_additional_message    "
+        f"line {exception_line_no + 130}, in test_error_log_item_exception_additional_message    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
         f"line {exception_line_no}, in raise_exception    raise "
@@ -155,15 +169,17 @@ def test_error_log_item_hierarchy_exception():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "service_name": "group",
+        "function_version": "$LATEST",
+        "lambda_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
         "exception_line_no": exception_line_no,
         "exception_function": "raise_exception",
-        "exception_stack": f'  File "test_error_logging.py", line {exception_line_no + 167}, in '
+        "exception_stack": f'  File "test_error_logging.py", line {exception_line_no + 177}, in '
         "test_error_log_item_hierarchy_exception    "
         'raise_exception_within("exception text")  File '
         f'"test_error_logging.py", line {exception_line_no + 4}, in '
@@ -206,9 +222,11 @@ def test_error_log_item_with_event_data():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "service_name": "group",
+        "function_version": "$LATEST",
+        "lambda_name": "test_function",
         "event_data": test_example_event_data,
     }
 
@@ -232,9 +250,11 @@ def test_error_log_item_with_exception_and_event_data():
 
     reference_exception_log_item = {
         "timestamp": "2020-01-01 00:00:00",
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "service_name": "group",
+        "function_version": "$LATEST",
+        "lambda_name": "test_function",
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": "test_error_logging.py",
@@ -242,7 +262,7 @@ def test_error_log_item_with_exception_and_event_data():
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         '"test_error_logging.py", '
-        f"line {exception_line_no + 244}, in test_error_log_item_with_exception_and_event_data    "
+        f"line {exception_line_no + 258}, in test_error_log_item_with_exception_and_event_data    "
         'raise_exception("exception text")  File '
         '"test_error_logging.py", '
         f"line {exception_line_no}, in raise_exception    raise "
@@ -282,9 +302,11 @@ def test_log_exception_to_logging_no_event_data():
     from aws_serverless_wrapper._helper import log_exception
 
     reference_exception_log_item = {
-        "request_id": "uuid",
-        "log_group": "test/log/group",
-        "function_name": "test_function",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "service_name": "group",
+        "lambda_name": "test_function",
+        "function_version": "$LATEST",
         "timestamp": "2020-01-01 00:00:00",
         "exception_type": "Exception",
         "exception_text": "exception text",
@@ -293,7 +315,7 @@ def test_log_exception_to_logging_no_event_data():
         "exception_function": "raise_exception",
         "exception_stack": "  File "
         f'"{path.realpath(__file__)}", '
-        f"line {exception_line_no + 295}, in {test_log_exception_to_logging_no_event_data.__name__}    "
+        f"line {exception_line_no + 311}, in {test_log_exception_to_logging_no_event_data.__name__}    "
         'raise_exception("exception text")  File '
         f'"{path.realpath(__file__)}", '
         f"line {exception_line_no}, in raise_exception    raise "
@@ -317,12 +339,31 @@ def test_log_exception_to_logging_no_event_data():
         assert log_item == reference_exception_log_item
 
 
+@freeze_time("2020-01-01")
+def test_log_exception_based_on_thrown_status_code_exception():
+    from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
+
+    reference_exception_log_item = {
+        "timestamp": "2020-01-01 00:00:00",
+        "aws_request_id": "uuid",
+        "aws_log_group": "test/log/group",
+        "lambda_name": "test_function",
+        "service_name": "group",
+        "function_version": "$LATEST",
+        "statusCode": 404,
+        "body": "not found",
+        "headers": {"Content-Type": "text/plain"},
+    }
+
+    try:
+        raise_exception_with_http_status(404, "not found", "text/plain")
+    except Exception as e:
+        actual_item = _create_error_log_item(context=context, exception=e)
+
+        assert actual_item == reference_exception_log_item
+
+
 from pytest import mark
-
-
-@mark.skip("not implemented")
-def test_log_exception_to_noSQL():
-    pass
 
 
 @mark.skip("not implemented")

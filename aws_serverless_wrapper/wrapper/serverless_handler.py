@@ -74,11 +74,19 @@ class __LambdaHandler(ABC):
 
         error_log_item = log_exception(exc, self.request_data, self.context)
 
-        response = {
-            "statusCode": 500,
-            "body": "internal server error",
-            "headers": {"Content-Type": "text/plain"},
-        }
+        if "statusCode" in exc.args[0]:
+            response = {"statusCode": 200}
+
+            basic_body_message = "internally captured error"
+
+        else:
+            basic_body_message = "internal server error"
+
+            response = {
+                "statusCode": 500,
+                "body": basic_body_message,
+                "headers": {"Content-Type": "text/plain"},
+            }
 
         if environ["ERROR_LOG"]["API_RESPONSE"]:
             response.update(
