@@ -1,7 +1,7 @@
 from .json_to_python_type import json_to_python_type_switch
 from json import load as json_load
 from jsonschema.validators import Draft7Validator, RefResolver
-from os.path import dirname, realpath
+from os.path import dirname, abspath
 from .._helper import delete_keys_in_nested_dict
 from copy import deepcopy
 
@@ -62,7 +62,7 @@ class SchemaValidator:
             self.validator_without_required_check.validate(data)
 
     def __file_resolver(self):
-        absolute_directory = dirname(realpath(self.__file))
+        absolute_directory = dirname(abspath(self.__file))
         relative_directory = f"file://{absolute_directory}/"
         self.__resolver = RefResolver(relative_directory, None)
 

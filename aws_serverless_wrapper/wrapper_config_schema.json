@@ -9,7 +9,6 @@
       "description": "specified region for AWS computing, normally provided by AWS_CONTEXT -> relevant for testing",
       "type": "string",
       "enum": [
-        "local",
         "us-east-1",
         "us-east-2",
         "us-west-1",
@@ -49,17 +48,17 @@
           "type": "object",
           "properties": {
             "MODEL": {
-              "description": "which noSQL database shall be set",
-              "type": "string",
-              "enum": [
-                "DynamoDB"
-              ]
+              "$ref": "wrapper_config_schema.json#/definitions/constants/properties/available_noSQL_databases"
             },
             "SCHEMA_ORIGIN": {
-              "$ref": "#/definitions/schemas/properties/origin"
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
             },
             "SCHEMA_DIRECTORY": {
-              "$ref": "#/definitions/schemas/properties/directory"
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
+            },
+            "RESOURCE_CONFIG": {
+              "description": "optional special configuration of the noSQL resource as specified by AWS",
+              "type": "object"
             },
             "CACHED_TABLES": {
               "description": "provide the names of tables to use the cache on\n(which have an external hash to verify if data has changed, see examples on how to use it)",
@@ -73,7 +72,11 @@
           },
           "required": [
             "MODEL"
-          ]
+          ],
+          "dependencies": {
+            "SCHEMA_ORIGIN": ["SCHEMA_DIRECTORY"],
+            "SCHEMA_DIRECTORY": ["SCHEMA_ORIGIN"]
+          }
         }
       }
     },
@@ -83,23 +86,35 @@
       "additionalProperties": false,
       "properties": {
         "SCHEMA_ORIGIN": {
-          "$ref": "#/definitions/schemas/properties/origin"
+          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
         },
         "SCHEMA_DIRECTORY": {
-          "$ref": "#/definitions/schemas/properties/directory"
+          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
         },
         "LOG_ERRORS": {
           "description": "if failed validations shall be logged",
-          "$ref": "#/definitions/error_log_config"
+          "$ref": "wrapper_config_schema.json#/definitions/error_log_config"
         }
       }
     },
     "ERROR_LOG": {
       "description": "how shall internal errors be logged?",
-      "$ref": "#/definitions/error_log_config"
+      "$ref": "wrapper_config_schema.json#/definitions/error_log_config"
     }
   },
   "definitions": {
+    "constants": {
+      "type": "object",
+      "properties": {
+        "available_noSQL_databases": {
+          "description": "which noSQL database shall be used",
+          "type": "string",
+          "enum": [
+            "DynamoDB"
+          ]
+        }
+      }
+    },
     "schemas": {
       "type": "object",
       "properties": {
