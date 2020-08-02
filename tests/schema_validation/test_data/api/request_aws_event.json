@@ -119,12 +119,6 @@
     "domainName": "1234567890.execute-api.eu-central-1.amazonaws.com",
     "apiId": "1234567890"
   },
-  "body": {
-    "body_key1": "value1",
-    "body_key2": {
-      "sub_body_key2.1": "value1",
-      "sub_body_key2.2": "value2"
-    }
-  },
+  "body": "{\"body_key1\": \"value1\", \"body_key2\": {\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}",
   "isBase64Encoded": false
 }

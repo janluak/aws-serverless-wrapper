@@ -7,13 +7,7 @@
       "key2": "value2"
     }
   },
-  "body": {
-    "body_key1": "value1",
-    "body_key2": {
-      "sub_body_key2.1": "value1",
-      "sub_body_key2.2": "value2"
-    }
-  },
+  "body": "{\"body_key1\": \"value1\", \"body_key2\": {\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}",
   "pathParameters": {
     "path_level1": "path_value1",
     "path_level2": "path_second_level1"

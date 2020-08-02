@@ -8,12 +8,7 @@ __all__ = ["APIDataValidator"]
 
 class APIDataValidator:
     def __init__(
-        self,
-        api_data: dict,
-        file: str = None,
-        url: str = None,
-        raw: dict = None,
-        json_formatted_body: bool = False,
+        self, api_data: dict, file: str = None, url: str = None, raw: dict = None,
     ):
         self.__httpMethod = api_data["httpMethod"]
 
@@ -35,8 +30,7 @@ class APIDataValidator:
         self.__convert_none_to_empty_dict()
         self.__rename_multi_value_query_to_query_param()
 
-        if json_formatted_body:
-            self.__decode_json_body()
+        self.__decode_json_body()
 
         self.__verify()
 
@@ -102,16 +96,17 @@ class APIDataValidator:
         )
 
     def __decode_json_body(self):
-        try:
-            self.__data["body"] = loads(self.__data["body"])
-        except (JSONDecodeError, TypeError):
-            raise TypeError(
-                {
-                    "statusCode": 400,
-                    "body": "Body has to be json formatted",
-                    "headers": {"Content-Type": "text/plain"},
-                }
-            )
+        if "body" in self.__data and not isinstance(self.__data["body"], dict):
+            try:
+                self.__data["body"] = loads(self.__data["body"])
+            except (JSONDecodeError, TypeError):
+                raise TypeError(
+                    {
+                        "statusCode": 400,
+                        "body": "Body has to be json formatted",
+                        "headers": {"Content-Type": "text/plain"},
+                    }
+                )
 
     def __verify(self):
         self.__check_for_required_parameter_types()
