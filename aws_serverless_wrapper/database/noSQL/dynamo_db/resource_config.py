@@ -1,4 +1,5 @@
 from ...._helper import environ
+from os import environ as os_environ
 
 __all__ = ["resource_config"]
 
@@ -23,7 +24,7 @@ def craft_config():
     if "AWS_SAM_LOCAL" in environ:
         environ["ENV"] = "local"
         environ["STAGE"] = "TEST"
-    elif "AWS_LAMBDA_FUNCTION_NAME" in environ:
+    elif "AWS_LAMBDA_FUNCTION_NAME" in os_environ:
         environ["ENV"] = "cloud"
     elif "UnitTest" in environ:
         environ["ENV"] = "local"
