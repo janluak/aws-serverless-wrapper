@@ -51,8 +51,19 @@ class CustomExceptionRaiser:
                 "body": f"{error.message} for table {self.table.name} and is missing",
                 "headers": {"Content-Type": "text/plain"},
             }
+        elif error.validator == "additionalProperties":
+            response = {
+                "statusCode": 400,
+                "body": f"{error.message} for table {self.table.name}\n"
+                f"path to unexpected property: {list(error.relative_path)}",
+                "headers": {"Content-Type": "text/plain"},
+            }
         else:
-            response = {"statusCode": 500}
+            response = {
+                "statusCode": 500,
+                "body": f"unexpected database validation error for table {self.table.name}: {error.message}",
+                "headers": {"Content-Type": "text/plain"},
+            }
 
         raise TypeError(response)
 

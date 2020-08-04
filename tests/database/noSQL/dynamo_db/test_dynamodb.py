@@ -238,6 +238,28 @@ class TestDynamoDB(TestDynamoDBBase):
         self.assertEqual(changed_item, result)
         t.delete(**test_item_primary)
 
+    def test_put_item_with_unexpected_property(self):
+        from copy import deepcopy
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        changed_item = deepcopy(test_item)
+        changed_item["some_dict"].update({"unexpected_key": "unexpected_value"})
+
+        with self.assertRaises(TypeError) as TE:
+            t.put(changed_item)
+
+        self.assertEqual(
+            {
+                "statusCode": 400,
+                "body": f"Additional properties are not allowed ('unexpected_key' was unexpected) for table {self.table_name}\n"
+                f"path to unexpected property: ['some_dict']",
+                "headers": {"Content-Type": "text/plain"},
+            },
+            TE.exception.args[0],
+        )
+
     def test_delete_item(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
