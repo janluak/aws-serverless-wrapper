@@ -22,6 +22,15 @@ class TestDynamoDBBase(TestCase):
         cls.actual_cwd = getcwd()
         chdir(dirname(realpath(__file__)))
 
+        from aws_serverless_wrapper.database.noSQL.dynamo_db.create_table import (
+            create_dynamo_db_table_from_schema,
+        )
+
+        cls.raw_schema = load_single(
+            f"{dirname(realpath(__file__))}/test_data/tables/{cls.table_name}.json"
+        )
+        create_dynamo_db_table_from_schema(cls.raw_schema)
+
     @classmethod
     def tearDownClass(cls) -> None:
         chdir(cls.actual_cwd)
@@ -91,20 +100,6 @@ class TestDynamoDBQuery(TestDynamoDBBase):
 
 
 class TestDynamoDB(TestDynamoDBBase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
-
-        from aws_serverless_wrapper.database.noSQL.dynamo_db.create_table import (
-            create_dynamo_db_table_from_schema,
-        )
-
-        create_dynamo_db_table_from_schema(
-            load_single(
-                f"{dirname(realpath(__file__))}/test_data/tables/{cls.table_name}.json"
-            )
-        )
-
     def setUp(self) -> None:
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
