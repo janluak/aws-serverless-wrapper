@@ -88,18 +88,12 @@ class Table(NoSQLTable):
             return current_sub_schema
 
     def _check_attribute_type(self, new_item, path_to_attribute):
-        from jsonschema import validate, ValidationError
+        from jsonschema import ValidationError
+        from ....schema_validation.schema_validator import _current_validator
 
-        def validate_sub_schema(sub_schema):
-            schema = raw_schema.copy()
-            schema.update(sub_schema)
-            validate(new_item, schema)
+        def validate_sub_schema(schema):
+            _current_validator(schema).validate(new_item)
 
-        raw_schema = {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "type": "object",
-            "additionalProperties": False,
-        }
         relevant_sub_schema = self._get_sub_schema(self.schema, path_to_attribute)
         if "items" not in relevant_sub_schema:
             validate_sub_schema(relevant_sub_schema)
