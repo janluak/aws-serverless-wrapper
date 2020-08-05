@@ -3,6 +3,7 @@ from os import environ as os_environ
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from datesy.file_IO.json_file import load_single
+from copy import deepcopy
 
 test_item = load_single(f"{dirname(realpath(__file__))}/test_data/items/test_item.json")
 test_item_primary = {"primary_partition_key": "some_identification_string"}
@@ -308,7 +309,6 @@ class TestDynamoDB(TestDynamoDBBase):
         t.delete(**test_item_primary)
 
     def test_put_item_with_unexpected_property(self):
-        from copy import deepcopy
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
