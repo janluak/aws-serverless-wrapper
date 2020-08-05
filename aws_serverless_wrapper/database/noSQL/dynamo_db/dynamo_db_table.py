@@ -104,7 +104,7 @@ class Table(NoSQLTable):
         #  expression "SET path.to.attribute = if_not_exists(path.to.attribute, :newAttribute)"
         raise NotImplemented
 
-    def update_list_item(self, primary_dict, new_item, item_no, path_to_list):
+    def update_list_item(self, primary_dict, item_no, **new_data):
         raise NotImplemented
 
     def update_append_list(self, primary_dict, **new_data):

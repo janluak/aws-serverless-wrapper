@@ -191,7 +191,7 @@ class NoSQLTable(ABC):
         pass
 
     @abstractmethod
-    def update_list_item(self, primary_dict, new_item, item_no, *path_to_list):
+    def update_list_item(self, primary_dict, item_no, **new_data):
         pass
 
     @abstractmethod
