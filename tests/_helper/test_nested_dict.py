@@ -285,3 +285,22 @@ class TestUpdateNestedDict(TestNestedDict):
         )
         assert origin_dict == verify_dict
         assert origin_dict["some_dict"] == verify_dict["some_dict"]
+
+
+class TestFindAllPathsInDict(TestNestedDict):
+    def test_find_paths(self):
+        from aws_serverless_wrapper._helper.nested_dict import find_paths_in_dict
+
+        expected_paths = [
+            ["some_string"],
+            ["some_int"],
+            ["some_float"],
+            ["some_dict", "key1"],
+            ["some_dict", "key2"],
+            ["some_nested_dict", "KEY1", "subKEY1"],
+            ["some_nested_dict", "KEY1", "subKEY2"],
+            ["some_array"],
+        ]
+        found_paths = find_paths_in_dict(reference_dict)
+
+        self.assertEqual(expected_paths, found_paths)

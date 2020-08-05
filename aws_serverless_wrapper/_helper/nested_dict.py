@@ -52,3 +52,19 @@ def update_nested_dict(original_dict, new_values):
         else:
             original_dict[k] = v
     return original_dict
+
+
+def find_paths_in_dict(data: dict, current_path=list(), all_paths=list()):
+    if isinstance(data, dict):
+        for key, value in data.items():
+            current_path.append(key)
+            if isinstance(value, dict):
+                find_paths_in_dict(value, current_path, all_paths)
+            else:
+                all_paths.append(current_path.copy())
+                current_path.pop(-1)
+    try:
+        current_path.pop(-1)
+    except IndexError:
+        pass
+    return all_paths
