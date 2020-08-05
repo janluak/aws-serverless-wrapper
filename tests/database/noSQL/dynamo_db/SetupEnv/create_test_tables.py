@@ -7,7 +7,6 @@ def create_table_for_schema_in_directory(directory):
         create_dynamo_db_table_from_schema,
     )
 
-    print("creating in environment:", os_environ["ENV"], "\n")
     schemas = glob(directory)
 
     for schema_file in schemas:
