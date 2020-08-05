@@ -74,44 +74,11 @@ class Table(NoSQLTable):
 
         return expression[:-2], object_with_float_to_decimal(expression_values)
 
-    @classmethod
-    def _get_sub_schema(cls, current_sub_schema: dict, path_to_sub_schema: list):
-        next_element = path_to_sub_schema.__iter__()
-        try:
-            if "properties" in current_sub_schema:
-                return cls._get_sub_schema(
-                    current_sub_schema["properties"][next(next_element)],
-                    path_to_sub_schema[1:],
-                )
-            return current_sub_schema
-        except StopIteration:
-            return current_sub_schema
-
-    def _check_attribute_type(self, new_item, path_to_attribute):
-        from jsonschema import ValidationError
-        from ....schema_validation.schema_validator import _current_validator
-
-        def validate_sub_schema(schema):
-            _current_validator(schema).validate(new_item)
-
-        relevant_sub_schema = self._get_sub_schema(self.schema, path_to_attribute)
-        if "items" not in relevant_sub_schema:
-            validate_sub_schema(relevant_sub_schema)
-        else:
-            if not isinstance(new_item, list):
-                new_item = [new_item]
-            for i in relevant_sub_schema["items"]:
-                try:
-                    validate_sub_schema(i)
-                    return
-                except ValidationError:
-                    pass
-
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
     def update_attribute(self, primary_dict, **new_data):
         self._primary_key_checker(primary_dict)
 
-        self._validate_input((primary_dict, new_data))
+        self._validate_input(new_data)
 
         expression, values = self._create_update_expression(new_data)
 
@@ -143,7 +110,7 @@ class Table(NoSQLTable):
     def update_append_list(self, primary_dict, **new_data):
         self._primary_key_checker(primary_dict)
 
-        self._validate_input((primary_dict, new_data))
+        self._validate_input(new_data)
 
         expression, values = self._create_update_expression(
             new_data, list_operation=True

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from inspect import stack
 from jsonschema.exceptions import ValidationError
 from copy import deepcopy
-from ..._helper import environ
+from ..._helper import environ, find_path_values_in_dict
 from ...schema_validation import SchemaValidator
 
 
@@ -114,11 +114,42 @@ class NoSQLTable(ABC):
     def custom_exception(self):
         return self.__custom_exception_raiser
 
+    @classmethod
+    def _get_sub_schema(self, current_sub_schema: dict, path_to_sub_schema: list):
+        next_element = path_to_sub_schema.__iter__()
+        try:
+            if "properties" in current_sub_schema:
+                return self._get_sub_schema(
+                    current_sub_schema["properties"][next(next_element)],
+                    path_to_sub_schema[1:],
+                )
+            return current_sub_schema
+        except StopIteration:
+            return current_sub_schema
+
+    def _check_sub_attribute_type(self, new_data):
+        from ...schema_validation.schema_validator import _current_validator
+
+        paths_in_new_data, new_values = find_path_values_in_dict(new_data)
+
+        for path_no in range(len(paths_in_new_data)):
+            path_to_new_attribute = paths_in_new_data[path_no]
+
+            relevant_sub_schema = self._get_sub_schema(
+                self.schema, path_to_new_attribute
+            )
+            try:
+                _current_validator(relevant_sub_schema).validate(new_values[path_no])
+            except ValidationError as VE:
+                for path in path_to_new_attribute[::-1]:
+
+                    VE.__dict__["path"].appendleft(path)
+                    raise VE
+
     def _validate_input(self, given_input):
         if "update" in stack()[1].function:
-            self._primary_key_checker(given_input[0])
             try:
-                self.__schema_validator.validate(given_input[1], no_required_check=True)
+                self._check_sub_attribute_type(given_input)
             except ValidationError as e:
                 self.custom_exception.wrong_data_type(e)
 

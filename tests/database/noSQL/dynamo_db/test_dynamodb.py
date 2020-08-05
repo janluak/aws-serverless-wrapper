@@ -180,38 +180,51 @@ class TestCheckSubItemType(TestDynamoDBBase):
         cls.t = Table(cls.table_name)
 
     def test_first_level_string(self):
-        self.t._check_attribute_type("abcdef", ["some_string"])
+        self.t._check_sub_attribute_type({"some_string": "abcdef"})
 
     def test_first_level_int(self):
-        self.t._check_attribute_type(3, ["some_int"])
+        self.t._check_sub_attribute_type({"some_int": 3})
 
     def test_nested_dict_end_value(self):
-        self.t._check_attribute_type(4, ["some_nested_dict", "KEY1", "subKEY2"])
+        self.t._check_sub_attribute_type({"some_nested_dict": {"KEY1": {"subKEY2": 4}}})
 
     def test_nested_dict_end_value_wrong_value(self):
         from jsonschema import ValidationError
 
         with self.assertRaises(ValidationError):
-            self.t._check_attribute_type("4", ["some_nested_dict", "KEY1", "subKEY2"])
+            self.t._check_sub_attribute_type(
+                {"some_nested_dict": {"KEY1": {"subKEY2": "4"}}}
+            )
 
     def test_nested_dict_dict_value(self):
-        self.t._check_attribute_type(
-            {"subKEY1": "some_string", "subKEY2": 5}, ["some_nested_dict", "KEY1"]
+        self.t._check_sub_attribute_type(
+            {"some_nested_dict": {"KEY1": {"subKEY1": "some_string", "subKEY2": 5}}}
         )
 
     def test_array_item1(self):
-        self.t._check_attribute_type(["some_string"], ["some_array"])
+        self.t._check_sub_attribute_type({"some_array": ["some_string"]})
 
     def test_array_item2(self):
-        self.t._check_attribute_type([34], ["some_array"])
-
-    def test_array_item_not_in_list(self):
-        self.t._check_attribute_type("some_string", ["some_array"])
+        self.t._check_sub_attribute_type({"some_array": [34]})
 
     def test_array_item3(self):
-        self.t._check_attribute_type(
-            {"KEY1": {"subKEY1": "string", "subKEY2": 45}}, ["some_array"]
+        self.t._check_sub_attribute_type(
+            {"some_array": [{"KEY1": {"subKEY1": "string", "subKEY2": 45}}]}
         )
+
+    def test_array_item_not_given_in_list(self):
+        from jsonschema import ValidationError
+
+        with self.assertRaises(ValidationError):
+            self.t._check_sub_attribute_type(
+                {"some_array": "some_string_not_in_an_array"}
+            )
+
+    def test_array_item_wrong_type(self):
+        from jsonschema import ValidationError
+
+        with self.assertRaises(ValidationError):
+            self.t._check_sub_attribute_type({"some_array": [[[1]]]})
 
 
 class TestDynamoDB(TestDynamoDBBase):
