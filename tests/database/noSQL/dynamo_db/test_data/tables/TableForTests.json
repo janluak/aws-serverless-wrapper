@@ -68,32 +68,34 @@
     "some_array": {
       "description": "contains a list",
       "type": "array",
-      "items": [
-        {
-          "type": "string"
-        },
-        {
-          "type": "number"
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "KEY1": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                "subKEY1": {
-                  "type": "string"
-                },
-                "subKEY2": {
-                  "type": "number"
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "KEY1": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "subKEY1": {
+                    "type": "string"
+                  },
+                  "subKEY2": {
+                    "type": "number"
+                  }
                 }
               }
             }
           }
-        }
-      ]
+        ]
+      }
     }
   },
   "required": [
