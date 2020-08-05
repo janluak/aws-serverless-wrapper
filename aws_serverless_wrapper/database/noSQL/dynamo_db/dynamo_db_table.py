@@ -62,6 +62,45 @@ class Table(NoSQLTable):
                 expression_values[f":{root}"] = new_data[root]
         return expression[:-2], object_with_float_to_decimal(expression_values)
 
+    @classmethod
+    def _get_sub_schema(cls, current_sub_schema: dict, path_to_sub_schema: list):
+        next_element = path_to_sub_schema.__iter__()
+        try:
+            if "properties" in current_sub_schema:
+                return cls._get_sub_schema(
+                    current_sub_schema["properties"][next(next_element)],
+                    path_to_sub_schema[1:],
+                )
+            return current_sub_schema
+        except StopIteration:
+            return current_sub_schema
+
+    def _check_attribute_type(self, new_item, path_to_attribute):
+        from jsonschema import validate, ValidationError
+
+        def validate_sub_schema(sub_schema):
+            schema = raw_schema.copy()
+            schema.update(sub_schema)
+            validate(new_item, schema)
+
+        raw_schema = {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "type": "object",
+            "additionalProperties": False,
+        }
+        relevant_sub_schema = self._get_sub_schema(self.schema, path_to_attribute)
+        if "items" not in relevant_sub_schema:
+            validate_sub_schema(relevant_sub_schema)
+        else:
+            if not isinstance(new_item, list):
+                new_item = [new_item]
+            for i in relevant_sub_schema["items"]:
+                try:
+                    validate_sub_schema(i)
+                    return
+                except ValidationError:
+                    pass
+
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
     def update_attribute(self, primary_dict, **new_data):
         self._primary_key_checker(primary_dict)

@@ -99,6 +99,80 @@ class TestDynamoDBQuery(TestDynamoDBBase):
     #     t.delete(**test_item_primary)
 
 
+class TestGetSubSchema(TestDynamoDBBase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        cls.t = Table
+
+    def test_get_first_level(self):
+        sub_schema = self.t._get_sub_schema(self.raw_schema, ["some_dict"])
+
+        self.assertEqual(self.raw_schema["properties"]["some_dict"], sub_schema)
+
+    def test_get_nested_dict(self):
+        sub_schema = self.t._get_sub_schema(
+            self.raw_schema, ["some_nested_dict", "KEY1", "subKEY2"]
+        )
+
+        self.assertEqual(
+            self.raw_schema["properties"]["some_nested_dict"]["properties"]["KEY1"][
+                "properties"
+            ]["subKEY2"],
+            sub_schema,
+        )
+
+    def test_get_array(self):
+        sub_schema = self.t._get_sub_schema(self.raw_schema, ["some_array"])
+
+        self.assertEqual(self.raw_schema["properties"]["some_array"], sub_schema)
+
+
+class TestCheckSubItemType(TestDynamoDBBase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        cls.t = Table(cls.table_name)
+
+    def test_first_level_string(self):
+        self.t._check_attribute_type("abcdef", ["some_string"])
+
+    def test_first_level_int(self):
+        self.t._check_attribute_type(3, ["some_int"])
+
+    def test_nested_dict_end_value(self):
+        self.t._check_attribute_type(4, ["some_nested_dict", "KEY1", "subKEY2"])
+
+    def test_nested_dict_end_value_wrong_value(self):
+        from jsonschema import ValidationError
+
+        with self.assertRaises(ValidationError):
+            self.t._check_attribute_type("4", ["some_nested_dict", "KEY1", "subKEY2"])
+
+    def test_nested_dict_dict_value(self):
+        self.t._check_attribute_type(
+            {"subKEY1": "some_string", "subKEY2": 5}, ["some_nested_dict", "KEY1"]
+        )
+
+    def test_array_item1(self):
+        self.t._check_attribute_type(["some_string"], ["some_array"])
+
+    def test_array_item2(self):
+        self.t._check_attribute_type([34], ["some_array"])
+
+    def test_array_item_not_in_list(self):
+        self.t._check_attribute_type("some_string", ["some_array"])
+
+    def test_array_item3(self):
+        self.t._check_attribute_type(
+            {"KEY1": {"subKEY1": "string", "subKEY2": 45}}, ["some_array"]
+        )
+
+
 class TestDynamoDB(TestDynamoDBBase):
     def setUp(self) -> None:
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
