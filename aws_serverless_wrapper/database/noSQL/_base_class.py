@@ -139,7 +139,10 @@ class NoSQLTable(ABC):
                 self.schema, path_to_new_attribute
             )
             try:
-                _current_validator(relevant_sub_schema).validate(new_values[path_no])
+                _current_validator(
+                    relevant_sub_schema,
+                    resolver=self.__schema_validator.validator.resolver,
+                ).validate(new_values[path_no])
             except ValidationError as VE:
                 for path in path_to_new_attribute[::-1]:
 

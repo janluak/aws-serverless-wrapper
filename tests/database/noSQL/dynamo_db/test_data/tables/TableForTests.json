@@ -77,6 +77,23 @@
             "type": "number"
           },
           {
+            "$ref": "TableForTests.json#/definitions/third_array_item"
+          }
+        ]
+      }
+    }
+  },
+  "required": [
+    "primary_partition_key",
+    "some_string",
+    "some_int",
+    "some_float",
+    "some_dict",
+    "some_nested_dict",
+    "some_array"
+  ],
+  "definitions": {
+    "third_array_item": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
@@ -94,17 +111,5 @@
               }
             }
           }
-        ]
-      }
-    }
-  },
-  "required": [
-    "primary_partition_key",
-    "some_string",
-    "some_int",
-    "some_float",
-    "some_dict",
-    "some_nested_dict",
-    "some_array"
-  ]
+  }
 }
