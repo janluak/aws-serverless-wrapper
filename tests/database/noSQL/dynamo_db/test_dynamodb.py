@@ -72,6 +72,27 @@ class TestDynamoDBQuery(TestDynamoDBBase):
         calculated_expression, _ = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
 
+    def test_update_query_with_nested_dicts(self):
+        expected_expression = (
+            "set parent1.child1.grandchild1 = :parent1child1grandchild1, "
+            "parent1.child2 = :parent1child2, "
+            "parent2.child3 = :parent2child3"
+        )
+        update_data = {
+            "parent1": {
+                "child1": {"grandchild1": "new_child1"},
+                "child2": "new_child2",
+            },
+            "parent2": {"child3": "new_child3"},
+        }
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        calculated_expression, _ = t._create_update_expression(update_data)
+        self.assertEqual(expected_expression, calculated_expression)
+
     # def test_update_query_add_attribute(self):
     #     expected_expression = "add attribute1 = :attribute1, " \
     #                           "attribute2 = :attribute2"
@@ -98,6 +119,25 @@ class TestDynamoDBQuery(TestDynamoDBBase):
     #     self.assertEqual(new_attribute["additional_key"], t.get(**test_item_primary)["additional_key"])
     #
     #     t.delete(**test_item_primary)
+
+    def test_append_list_with_item(self):
+        expected_expression = (
+            "set parent1.child1 = list_append(parent1.child1, :parent1child1), "
+            "parent2.child3 = list_append(parent2.child3, :parent2child3)"
+        )
+        update_data = {
+            "parent1": {"child1": ["new_child1", "new_child2"]},
+            "parent2": {"child3": ["new_child3"]},
+        }
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        calculated_expression, _ = t._create_update_expression(
+            update_data, list_operation=True
+        )
+        self.assertEqual(expected_expression, calculated_expression)
 
 
 class TestGetSubSchema(TestDynamoDBBase):
@@ -393,6 +433,23 @@ class TestDynamoDB(TestDynamoDBBase):
             },
             TE.exception.args[0],
         )
+
+    def test_append_item(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        changed_item = deepcopy(test_item)
+        changed_item["some_nested_dict"]["KEY1"]["subKEY3"].append("second_string")
+
+        t = Table(self.table_name)
+        t.put(test_item)
+        t.update_append_list(
+            test_item_primary,
+            **{"some_nested_dict": {"KEY1": {"subKEY3": ["second_string"]}}},
+        )
+
+        result = t.get(**test_item_primary)
+
+        self.assertEqual(changed_item, result)
 
     def test_scan_and_truncate(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table

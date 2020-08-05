@@ -54,6 +54,12 @@
             },
             "subKEY2": {
               "type": "number"
+            },
+            "subKEY3": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           }
         }

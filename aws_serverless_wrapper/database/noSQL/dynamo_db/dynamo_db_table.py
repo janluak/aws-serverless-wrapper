@@ -1,6 +1,7 @@
-from ...._helper.traverse_object import (
+from ...._helper import (
     object_with_decimal_to_float,
     object_with_float_to_decimal,
+    find_path_values_in_dict,
 )
 from ...._helper import environ
 from boto3 import resource
@@ -47,19 +48,30 @@ class Table(NoSQLTable):
                 ]
 
     @staticmethod
-    def _create_update_expression(new_data):
+    def _create_update_expression(new_data, list_operation=False):
         # ToDo quote AWS keywords like `status` to
         #  `#status` in expression following an ExpressionAttributeName dict with {'#status': 'status'}
         expression = "set "
         expression_values = dict()
-        for root in new_data:
-            if isinstance(new_data[root], dict):
-                for fork in new_data[root]:
-                    expression += f"{root}.{fork} = :{root}{fork}, "
-                    expression_values[f":{root}{fork}"] = new_data[root][fork]
-            else:
-                expression += f"{root} = :{root}, "
-                expression_values[f":{root}"] = new_data[root]
+        paths, values = find_path_values_in_dict(new_data)
+
+        def update_expression_attribute():
+            if list_operation:
+                return (
+                    f"list_append({string_path_to_attribute}, :{string_path_variable})"
+                )
+            return f":{string_path_variable}"
+
+        for path_no in range(len(paths)):
+            path = paths[path_no]
+            string_path_to_attribute = ".".join(path)
+            string_path_variable = "".join(path)
+
+            expression += (
+                f"{string_path_to_attribute} = {update_expression_attribute()}, "
+            )
+            expression_values[f":{string_path_variable}"] = values[path_no]
+
         return expression[:-2], object_with_float_to_decimal(expression_values)
 
     @classmethod
@@ -134,14 +146,20 @@ class Table(NoSQLTable):
     def update_list_item(self, primary_dict, new_item, item_no, path_to_list):
         raise NotImplemented
 
-    def update_append_list(self, primary_dict, new_item, *path_to_list):
-        # self._primary_key_checker(primary_dict)
-        #
-        # self._check_attribute_type(new_data, self.schema["properties"])
-        #
-        # "set history = list_append(history, :new_coffee_config)",
-        #  expression "SET path.to.attribute = list_append(:newAttribute, path.to.attribute)"
-        raise NotImplemented
+    def update_append_list(self, primary_dict, **new_data):
+        self._primary_key_checker(primary_dict)
+
+        self._validate_input((primary_dict, new_data))
+
+        expression, values = self._create_update_expression(
+            new_data, list_operation=True
+        )
+
+        self.__table.update_item(
+            Key=primary_dict,
+            UpdateExpression=expression,
+            ExpressionAttributeValues=values,
+        )
 
     def update_increment(self, primary, path_of_to_increment):
         #  response = table.update_item(
