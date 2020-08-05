@@ -181,6 +181,12 @@ class TestDynamoDB(TestDynamoDBBase):
         t = Table(self.table_name)
         t.truncate()
 
+    def tearDown(self) -> None:
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+        t.truncate()
+
     def test_put(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
