@@ -55,13 +55,19 @@ def update_nested_dict(original_dict, new_values):
 
 
 def find_path_values_in_dict(
-    data: dict, current_path=list(), all_paths=list(), all_values=list()
+    data: dict, current_path=None, all_paths=None, all_values=None
 ):
+    if all_values is None:
+        all_values = list()
+    if all_paths is None:
+        all_paths = list()
+    if current_path is None:
+        current_path = list()
     if isinstance(data, dict):
         for key, value in data.items():
             current_path.append(key)
             if isinstance(value, dict):
-                find_path_values_in_dict(value, current_path, all_paths)
+                find_path_values_in_dict(value, current_path, all_paths, all_values)
             else:
                 all_paths.append(current_path.copy())
                 all_values.append(value)

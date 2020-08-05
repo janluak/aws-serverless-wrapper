@@ -319,3 +319,35 @@ class TestFindAllPathsInDict(TestNestedDict):
 
         self.assertEqual(expected_paths, found_paths)
         self.assertEqual(expected_values, found_values)
+
+    def test_find_paths2(self):
+        from aws_serverless_wrapper._helper.nested_dict import find_path_values_in_dict
+
+        expected_paths = [
+            ["some_string"],
+            ["some_int"],
+            ["some_float"],
+            ["some_dict", "key1"],
+            ["some_dict", "key2"],
+            ["some_nested_dict", "KEY1", "subKEY1"],
+            ["some_nested_dict", "KEY1", "subKEY2"],
+            ["some_array"],
+        ]
+        expected_values = [
+            "abcdef",
+            42,
+            13.42,
+            "value1",
+            2,
+            "subVALUE1",
+            42.24,
+            [
+                "array_string",
+                13,
+                {"KEY1": {"arraySubKEY1": "subVALUE1", "arraySubKEY2": 42.24}},
+            ],
+        ]
+        found_paths, found_values = find_path_values_in_dict(reference_dict)
+
+        self.assertEqual(expected_paths, found_paths)
+        self.assertEqual(expected_values, found_values)
