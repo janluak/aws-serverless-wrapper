@@ -1,6 +1,6 @@
-from ...._helper.traverse_dict import (
-    decimal_dict_to_float,
-    float_dict_to_decimal,
+from ...._helper.traverse_object import (
+    object_with_decimal_to_float,
+    object_with_float_to_decimal,
 )
 from ...._helper import environ
 from boto3 import resource
@@ -40,9 +40,11 @@ class Table(NoSQLTable):
             self.custom_exception.not_found_message(primary_dict)
         else:
             try:
-                return decimal_dict_to_float(response["Item"])
+                return object_with_decimal_to_float(response["Item"])
             except KeyError:
-                return [decimal_dict_to_float(item) for item in response["Items"]]
+                return [
+                    object_with_decimal_to_float(item) for item in response["Items"]
+                ]
 
     @staticmethod
     def _create_update_expression(new_data):
@@ -58,7 +60,7 @@ class Table(NoSQLTable):
             else:
                 expression += f"{root} = :{root}, "
                 expression_values[f":{root}"] = new_data[root]
-        return expression[:-2], float_dict_to_decimal(expression_values)
+        return expression[:-2], object_with_float_to_decimal(expression_values)
 
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
     def update_attribute(self, primary_dict, **new_data):
@@ -90,7 +92,7 @@ class Table(NoSQLTable):
         #  expression "SET path.to.attribute = if_not_exists(path.to.attribute, :newAttribute)"
         raise NotImplemented
 
-    def update_list_item(self, primary_dict, new_item, item_no, *path_to_list):
+    def update_list_item(self, primary_dict, new_item, item_no, path_to_list):
         raise NotImplemented
 
     def update_append_list(self, primary_dict, new_item, *path_to_list):
@@ -123,12 +125,12 @@ class Table(NoSQLTable):
         try:
             item_copy = deepcopy(item)
             self.__table.put_item(
-                Item=float_dict_to_decimal(item_copy),
+                Item=object_with_float_to_decimal(item_copy),
                 ConditionExpression=" and ".join(
                     [f"attribute_not_exists({pk})" for pk in self.pk]
                 ),
             ) if not overwrite else self.__table.put_item(
-                Item=float_dict_to_decimal(item_copy)
+                Item=object_with_float_to_decimal(item_copy)
             )
 
         except Exception as e:
@@ -159,7 +161,9 @@ class Table(NoSQLTable):
 
     def scan(self):
         response = self.__table.scan()
-        response["Items"] = [decimal_dict_to_float(item) for item in response["Items"]]
+        response["Items"] = [
+            object_with_decimal_to_float(item) for item in response["Items"]
+        ]
         return response
 
     def truncate(self):
