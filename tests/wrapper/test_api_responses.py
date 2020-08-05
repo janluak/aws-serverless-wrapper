@@ -117,7 +117,11 @@ def test_wrong_body(run_from_file_directory):
     )
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
+    from json import loads, dumps
+
+    event["body"] = loads(event["body"])
     event["body"]["body_key1"] = 123
+    event["body"] = dumps(event["body"])
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
