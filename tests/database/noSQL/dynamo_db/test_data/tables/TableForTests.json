@@ -56,10 +56,7 @@
               "type": "number"
             },
             "subKEY3": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
+              "$ref": "TableForTests.json#/definitions/third_nested_dict_key"
             }
           }
         }
@@ -110,6 +107,12 @@
                 }
               }
             }
-          }
+          },
+    "third_nested_dict_key": {
+      "type": "array",
+              "items": {
+                "type": "string"
+              }
+    }
   }
 }
