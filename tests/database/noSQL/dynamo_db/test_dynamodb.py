@@ -201,6 +201,35 @@ class TestCheckSubItemType(TestDynamoDBBase):
             ["some_nested_dict", "KEY1", "subKEY3", 1], list(VE.exception.path)
         )
 
+    def test_nested_dict_pattern_properties(self):
+        new_sub_dict = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"abc": [{"sub_sub_key": "some_string_value"}]}}
+            }
+        }
+        self.t._check_sub_attribute_type(new_sub_dict)
+
+    def test_nested_dict_pattern_properties_wrong_pattern(self):
+        from jsonschema import ValidationError
+
+        new_sub_dict = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"Abc": [{"sub_sub_key": "some_string_value"}]}}
+            }
+        }
+        with self.assertRaises(ValidationError) as VE:
+            self.t._check_sub_attribute_type(new_sub_dict)
+
+        self.assertEqual(
+            "none of the patternProperties matched: ['^[a-z]+$', '^[a-z0-9]+$']",
+            VE.exception.args[0],
+        )
+
+        # ToDo path isn't added when checking patternProperties
+        # self.assertEqual(
+        #     ["some_nested_dict", "KEY1", "subKEY4"], list(VE.exception.path)
+        # )
+
     def test_nested_dict_dict_value(self):
         self.t._check_sub_attribute_type(
             {"some_nested_dict": {"KEY1": {"subKEY1": "some_string", "subKEY2": 5}}}

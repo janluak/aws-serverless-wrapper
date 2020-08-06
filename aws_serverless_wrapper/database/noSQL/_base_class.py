@@ -122,6 +122,26 @@ class NoSQLTable(ABC):
                     current_sub_schema["properties"][next(next_element)],
                     path_to_sub_schema[1:],
                 )
+            elif "patternProperties" in current_sub_schema:
+                from re import compile
+
+                n = next(next_element)
+                for key in current_sub_schema["patternProperties"]:
+                    if compile(key).match(n):
+                        return self._get_sub_schema(
+                            current_sub_schema["patternProperties"][key],
+                            path_to_sub_schema[1:],
+                        )
+                raise ValidationError(
+                    f"none of the patternProperties matched: {list(current_sub_schema['patternProperties'].keys())}",
+                )
+
+            elif "$ref" in current_sub_schema:
+                current_sub_schema = self.__schema_validator.validator.resolver.resolve(
+                    current_sub_schema["$ref"]
+                )
+                return self._get_sub_schema(current_sub_schema[1], path_to_sub_schema)
+
             return current_sub_schema
         except StopIteration:
             return current_sub_schema
