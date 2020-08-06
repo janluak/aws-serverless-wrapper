@@ -146,7 +146,7 @@ class TestGetSubSchema(TestDynamoDBBase):
         super().setUpClass()
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
-        cls.t = Table
+        cls.t = Table(cls.table_name)
 
     def test_get_first_level(self):
         sub_schema = self.t._get_sub_schema(self.raw_schema, ["some_dict"])
@@ -188,13 +188,18 @@ class TestCheckSubItemType(TestDynamoDBBase):
     def test_nested_dict_end_value(self):
         self.t._check_sub_attribute_type({"some_nested_dict": {"KEY1": {"subKEY2": 4}}})
 
-    def test_nested_dict_end_value_wrong_value(self):
+    def test_nested_dict_end_value_wrong_value_with_schema_error_path(self):
         from jsonschema import ValidationError
 
-        with self.assertRaises(ValidationError):
+        with self.assertRaises(ValidationError) as VE:
             self.t._check_sub_attribute_type(
-                {"some_nested_dict": {"KEY1": {"subKEY2": "4"}}}
+                {"some_nested_dict": {"KEY1": {"subKEY3": ["string_value", 4]}}}
             )
+
+        self.assertEqual("4 is not of type 'string'", VE.exception.args[0])
+        self.assertEqual(
+            ["some_nested_dict", "KEY1", "subKEY3", 1], list(VE.exception.path)
+        )
 
     def test_nested_dict_dict_value(self):
         self.t._check_sub_attribute_type(

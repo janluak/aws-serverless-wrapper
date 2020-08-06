@@ -114,12 +114,11 @@ class NoSQLTable(ABC):
     def custom_exception(self):
         return self.__custom_exception_raiser
 
-    @classmethod
-    def _get_sub_schema(cls, current_sub_schema: dict, path_to_sub_schema: list):
+    def _get_sub_schema(self, current_sub_schema: dict, path_to_sub_schema: list):
         next_element = path_to_sub_schema.__iter__()
         try:
             if "properties" in current_sub_schema:
-                return cls._get_sub_schema(
+                return self._get_sub_schema(
                     current_sub_schema["properties"][next(next_element)],
                     path_to_sub_schema[1:],
                 )
