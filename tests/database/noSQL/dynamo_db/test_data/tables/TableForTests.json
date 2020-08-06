@@ -15,7 +15,11 @@
     "some_string": {
       "description": "some key containing any kind of strings",
       "type": "string",
-      "enum": ["abcdef", "ghijkl", "NewBee"]
+      "enum": [
+        "abcdef",
+        "ghijkl",
+        "NewBee"
+      ]
     },
     "some_int": {
       "description": "some key containing any integers",
@@ -107,23 +111,23 @@
   ],
   "definitions": {
     "third_array_item": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "KEY1": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "subKEY1": {
-                    "type": "string"
-                  },
-                  "subKEY2": {
-                    "type": "number"
-                  }
-                }
-              }
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KEY1": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "subKEY1": {
+              "type": "string"
+            },
+            "subKEY2": {
+              "type": "number"
             }
-          },
+          }
+        }
+      }
+    },
     "third_nested_dict_key": {
       "type": "array",
       "items": {
