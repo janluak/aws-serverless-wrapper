@@ -38,46 +38,102 @@ class TestDynamoDBBase(TestCase):
 
 
 class TestDynamoDBQuery(TestDynamoDBBase):
-    def test_update_query_with_attribute(self):
-        expected_expression = (
-            "set attribute1 = :attribute1, " "attribute2 = :attribute2"
-        )
+    def test_update_query_with_string_attributes(self):
+        expected_expression = "set #AA = :aa, #AB = :ab"
+        expected_expression_name_mapping = {"#AA": "attribute1", "#AB": "attribute2"}
+
         update_data = {
             "attribute1": "new_value1",
             "attribute2": "new_value2",
         }
+        expected_update_values = {":aa": "new_value1", ":ab": "new_value2"}
 
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
-        calculated_expression, _ = t._create_update_expression(update_data)
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
+
+    def test_update_query_with_number_attributes(self):
+        expected_expression = "set #AA = :aa, #AB = :ab"
+        expected_expression_name_mapping = {"#AA": "attribute1", "#AB": "attribute2"}
+
+        update_data = {
+            "attribute1": 2943,
+            "attribute2": 1.2443,
+        }
+
+        from decimal import Decimal
+
+        expected_update_values = {":aa": 2943, ":ab": Decimal("1.2443")}
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(update_data)
+        self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
 
     def test_update_query_with_dicts(self):
-        expected_expression = (
-            "set parent1.child1 = :parent1child1, "
-            "parent1.child2 = :parent1child2, "
-            "parent2.child3 = :parent2child3"
-        )
+        expected_expression = "set #AA.#AB = :aa, " "#AA.#AC = :ab, " "#AD.#AE = :ac"
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "child2",
+            "#AD": "parent2",
+            "#AE": "child3",
+        }
+
         update_data = {
             "parent1": {"child1": "new_child1", "child2": "new_child2"},
             "parent2": {"child3": "new_child3"},
         }
 
+        expected_update_values = {
+            ":aa": "new_child1",
+            ":ab": "new_child2",
+            ":ac": "new_child3",
+        }
+
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
-        calculated_expression, _ = t._create_update_expression(update_data)
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
 
     def test_update_query_with_nested_dicts(self):
         expected_expression = (
-            "set parent1.child1.grandchild1 = :parent1child1grandchild1, "
-            "parent1.child2 = :parent1child2, "
-            "parent2.child3 = :parent2child3"
+            "set #AA.#AB.#AC = :aa, " "#AA.#AD = :ab, " "#AE.#AF = :ac"
         )
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "grandchild1",
+            "#AD": "child2",
+            "#AE": "parent2",
+            "#AF": "child3",
+        }
+
         update_data = {
             "parent1": {
                 "child1": {"grandchild1": "new_child1"},
@@ -86,12 +142,24 @@ class TestDynamoDBQuery(TestDynamoDBBase):
             "parent2": {"child3": "new_child3"},
         }
 
+        expected_update_values = {
+            ":aa": "new_child1",
+            ":ab": "new_child2",
+            ":ac": "new_child3",
+        }
+
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
-        calculated_expression, _ = t._create_update_expression(update_data)
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
 
     # def test_update_query_add_attribute(self):
     #     expected_expression = "add attribute1 = :attribute1, " \
@@ -122,22 +190,38 @@ class TestDynamoDBQuery(TestDynamoDBBase):
 
     def test_append_list_with_item(self):
         expected_expression = (
-            "set parent1.child1 = list_append(parent1.child1, :parent1child1), "
-            "parent2.child3 = list_append(parent2.child3, :parent2child3)"
+            "set #AA.#AB = list_append(#AA.#AB, :aa), "
+            "#AC.#AD = list_append(#AC.#AD, :ab)"
         )
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "parent2",
+            "#AD": "child3",
+        }
+
         update_data = {
             "parent1": {"child1": ["new_child1", "new_child2"]},
             "parent2": {"child3": ["new_child3"]},
+        }
+
+        expected_update_values = {
+            ":aa": ["new_child1", "new_child2"],
+            ":ab": ["new_child3"],
         }
 
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
 
-        calculated_expression, _ = t._create_update_expression(
-            update_data, list_operation=True
-        )
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(update_data, list_operation=True)
         self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
 
 
 class TestGetSubSchema(TestDynamoDBBase):

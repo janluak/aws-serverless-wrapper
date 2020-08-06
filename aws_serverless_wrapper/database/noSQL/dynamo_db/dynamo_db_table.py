@@ -4,6 +4,7 @@ from ...._helper import (
     find_path_values_in_dict,
 )
 from ...._helper import environ
+from string import ascii_lowercase
 from boto3 import resource
 from copy import deepcopy
 from .resource_config import resource_config
@@ -12,6 +13,11 @@ from .._base_class import NoSQLTable
 dynamo_db_resource = resource("dynamodb", **resource_config)
 
 __all__ = ["Table"]
+
+_value_update_chars = list()
+for c1 in ascii_lowercase:
+    for c2 in ascii_lowercase:
+        _value_update_chars.append(c1 + c2)
 
 
 class Table(NoSQLTable):
@@ -49,30 +55,64 @@ class Table(NoSQLTable):
 
     @staticmethod
     def _create_update_expression(new_data, list_operation=False):
-        # ToDo quote AWS keywords like `status` to
-        #  `#status` in expression following an ExpressionAttributeName dict with {'#status': 'status'}
         expression = "set "
         expression_values = dict()
         paths, values = find_path_values_in_dict(new_data)
 
+        attribute_key_mapping = dict()
+        letters_used = 0
+
         def update_expression_attribute():
             if list_operation:
-                return (
-                    f"list_append({string_path_to_attribute}, :{string_path_variable})"
-                )
-            return f":{string_path_variable}"
+                return f"list_append({string_path_to_attribute}, :{_value_update_chars[path_no]})"
+            return f":{_value_update_chars[path_no]}"
+
+        def update_expression_value():
+            expression_values[f":{_value_update_chars[path_no]}"] = values[path_no]
+
+        def assign_key_to_attribute_path_step(attribute_name, letter_count):
+            if attribute_name not in attribute_key_mapping:
+                attribute_key_mapping[
+                    attribute_name
+                ] = f"#{_value_update_chars[letter_count].upper()}"
+                letter_count += 1
+            return letter_count
+
+        def create_path_to_attribute_with_mapped_keys(
+            left_path_to_process, path_with_keys, letter_count
+        ):
+            for step in left_path_to_process:
+                letter_count = assign_key_to_attribute_path_step(step, letter_count)
+
+                path_with_keys.append(attribute_key_mapping[step])
+
+            return path_with_keys, letter_count
 
         for path_no in range(len(paths)):
             path = paths[path_no]
-            string_path_to_attribute = ".".join(path)
-            string_path_variable = "".join(path)
+
+            path_with_letter_keys = list()
+
+            (
+                path_with_letter_keys,
+                letters_used,
+            ) = create_path_to_attribute_with_mapped_keys(
+                path, path_with_letter_keys, letters_used
+            )
+
+            string_path_to_attribute = ".".join(path_with_letter_keys)
 
             expression += (
                 f"{string_path_to_attribute} = {update_expression_attribute()}, "
             )
-            expression_values[f":{string_path_variable}"] = values[path_no]
 
-        return expression[:-2], object_with_float_to_decimal(expression_values)
+            update_expression_value()
+
+        return (
+            expression[:-2],
+            object_with_float_to_decimal(expression_values),
+            {v: k for k, v in attribute_key_mapping.items()},
+        )
 
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
     def update_attribute(self, primary_dict, **new_data):
@@ -80,12 +120,15 @@ class Table(NoSQLTable):
 
         self._validate_input(new_data)
 
-        expression, values = self._create_update_expression(new_data)
+        expression, values, expression_name_map = self._create_update_expression(
+            new_data
+        )
 
         self.__table.update_item(
             Key=primary_dict,
             UpdateExpression=expression,
             ExpressionAttributeValues=values,
+            ExpressionAttributeNames=expression_name_map,
         )
 
     def update_add_new_attribute(self, primary_dict, new_data: dict):
@@ -112,7 +155,7 @@ class Table(NoSQLTable):
 
         self._validate_input(new_data)
 
-        expression, values = self._create_update_expression(
+        expression, values, expression_name_map = self._create_update_expression(
             new_data, list_operation=True
         )
 
@@ -120,6 +163,7 @@ class Table(NoSQLTable):
             Key=primary_dict,
             UpdateExpression=expression,
             ExpressionAttributeValues=values,
+            ExpressionAttributeNames=expression_name_map,
         )
 
     def update_increment(self, primary, path_of_to_increment):
