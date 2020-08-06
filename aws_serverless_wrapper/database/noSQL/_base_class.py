@@ -145,9 +145,8 @@ class NoSQLTable(ABC):
                 ).validate(new_values[path_no])
             except ValidationError as VE:
                 for path in path_to_new_attribute[::-1]:
-
                     VE.__dict__["path"].appendleft(path)
-                    raise VE
+                raise VE
 
     def _validate_input(self, given_input):
         if "update" in stack()[1].function:
