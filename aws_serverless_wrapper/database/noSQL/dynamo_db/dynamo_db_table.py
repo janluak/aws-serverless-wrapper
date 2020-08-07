@@ -6,6 +6,7 @@ from ...._helper import (
 from ...._helper import environ
 from string import ascii_lowercase
 from boto3 import resource
+from botocore.exceptions import ClientError
 from copy import deepcopy
 from .resource_config import resource_config
 from .._base_class import NoSQLTable
@@ -189,14 +190,11 @@ class Table(NoSQLTable):
                 Item=object_with_float_to_decimal(item_copy)
             )
 
-        except Exception as e:
-            if (
-                e.__dict__["response"]["Error"]["Code"]
-                == "ConditionalCheckFailedException"
-            ):
+        except ClientError as CE:
+            if CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 self.custom_exception.item_already_existing(item)
             else:
-                raise e
+                raise CE
 
     def remove_attribute(self, primary_dict, path_of_attribute):
         # expression "REMOVE path.to.attribute, path.to.attribute2"
