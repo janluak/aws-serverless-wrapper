@@ -114,22 +114,27 @@ class Table(NoSQLTable):
             {v: k for k, v in attribute_key_mapping.items()},
         )
 
-    # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
-    def update_attribute(self, primary_dict, **new_data):
+    def __general_update(self, primary_dict, list_operation=False, **new_data):
         self._primary_key_checker(primary_dict)
 
         self._validate_input(new_data)
 
         expression, values, expression_name_map = self._create_update_expression(
-            new_data
+            new_data, list_operation
         )
 
-        self.__table.update_item(
-            Key=primary_dict,
-            UpdateExpression=expression,
-            ExpressionAttributeValues=values,
-            ExpressionAttributeNames=expression_name_map,
-        )
+        update_dict = {
+            "Key": primary_dict,
+            "UpdateExpression": expression,
+            "ExpressionAttributeValues": values,
+            "ExpressionAttributeNames": expression_name_map,
+        }
+
+        self.__table.update_item(**update_dict)
+
+    # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
+    def update_attribute(self, primary_dict, **new_data):
+        self.__general_update(primary_dict, **new_data)
 
     def update_add_new_attribute(self, primary_dict, new_data: dict):
         # self._primary_key_checker(primary_dict)
@@ -151,20 +156,7 @@ class Table(NoSQLTable):
         raise NotImplemented
 
     def update_append_list(self, primary_dict, **new_data):
-        self._primary_key_checker(primary_dict)
-
-        self._validate_input(new_data)
-
-        expression, values, expression_name_map = self._create_update_expression(
-            new_data, list_operation=True
-        )
-
-        self.__table.update_item(
-            Key=primary_dict,
-            UpdateExpression=expression,
-            ExpressionAttributeValues=values,
-            ExpressionAttributeNames=expression_name_map,
-        )
+        self.__general_update(primary_dict, list_operation=True, **new_data)
 
     def update_increment(self, primary, path_of_to_increment):
         #  response = table.update_item(
