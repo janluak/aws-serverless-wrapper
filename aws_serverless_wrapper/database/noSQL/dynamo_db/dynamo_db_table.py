@@ -34,6 +34,10 @@ class Table(NoSQLTable):
     def _item_not_exists_condition(self):
         return " and ".join([f"attribute_not_exists({pk})" for pk in self.pk])
 
+    @property
+    def _item_exists_condition(self):
+        return " and ".join([f"attribute_exists({pk})" for pk in self.pk])
+
     def describe(self):
         from boto3 import client
 
@@ -119,7 +123,13 @@ class Table(NoSQLTable):
             {v: k for k, v in attribute_key_mapping.items()},
         )
 
-    def __general_update(self, primary_dict, list_operation=False, **new_data):
+    def __general_update(
+        self,
+        primary_dict,
+        create_item_if_non_existent,
+        list_operation=False,
+        **new_data,
+    ):
         self._primary_key_checker(primary_dict)
 
         self._validate_input(new_data)
@@ -135,11 +145,31 @@ class Table(NoSQLTable):
             "ExpressionAttributeNames": expression_name_map,
         }
 
-        self.__table.update_item(**update_dict)
+        if not create_item_if_non_existent or not any(
+            isinstance(v, dict) for v in new_data
+        ):
+            update_dict.update(ConditionExpression=self._item_exists_condition)
+
+        try:
+            self.__table.update_item(**update_dict)
+        except ClientError as CE:
+            if (
+                CE.response["Error"]["Code"] == "ConditionalCheckFailedException"
+                and create_item_if_non_existent
+            ):
+                item = primary_dict.copy()
+                item.update(new_data)
+                self.__table.put_item(Item=object_with_float_to_decimal(item))
+            elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                raise self.custom_exception.not_found_message(primary_dict)
+            else:
+                raise CE
 
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
-    def update_attribute(self, primary_dict, **new_data):
-        self.__general_update(primary_dict, **new_data)
+    def update_attribute(
+        self, primary_dict, create_item_if_non_existent=False, **new_data
+    ):
+        self.__general_update(primary_dict, create_item_if_non_existent, **new_data)
 
     def update_add_new_attribute(self, primary_dict, new_data: dict):
         # self._primary_key_checker(primary_dict)
@@ -160,8 +190,12 @@ class Table(NoSQLTable):
     def update_list_item(self, primary_dict, item_no, **new_data):
         raise NotImplemented
 
-    def update_append_list(self, primary_dict, **new_data):
-        self.__general_update(primary_dict, list_operation=True, **new_data)
+    def update_append_list(
+        self, primary_dict, create_item_if_non_existent=False, **new_data
+    ):
+        self.__general_update(
+            primary_dict, create_item_if_non_existent, list_operation=True, **new_data
+        )
 
     def update_increment(self, primary, path_of_to_increment):
         #  response = table.update_item(

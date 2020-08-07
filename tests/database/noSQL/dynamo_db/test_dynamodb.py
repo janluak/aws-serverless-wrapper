@@ -426,7 +426,6 @@ class TestDynamoDB(TestDynamoDBBase):
         )
 
     def test_put_get_and_delete_item(self):
-
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
         t = Table(self.table_name)
@@ -524,6 +523,54 @@ class TestDynamoDB(TestDynamoDBBase):
             },
             FNF.exception.args[0],
         )
+
+    def test_update_attribute_non_exiting_item(self):
+        updated_attribute = {"some_float": 249235.93}
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+        with self.assertRaises(FileNotFoundError) as FNF:
+            t.update_attribute(test_item_primary, **updated_attribute)
+
+        self.assertEqual(
+            {
+                "statusCode": 404,
+                "body": "{'primary_partition_key': 'some_identification_string'} not found in "
+                "TableForTests",
+                "headers": {"Content-Type": "text/plain"},
+            },
+            FNF.exception.args[0],
+        )
+
+    def test_update_attribute_non_exiting_item_but_create_it(self):
+        updated_attribute = {"some_float": 249235.93}
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        changed_item = deepcopy(test_item_primary)
+        changed_item.update(**updated_attribute)
+
+        t = Table(self.table_name)
+        t.update_attribute(
+            test_item_primary, create_item_if_non_existent=True, **updated_attribute
+        )
+
+        self.assertEqual(changed_item, t.get(**test_item_primary))
+
+    def test_update_nested_attribute_non_exiting_item_but_create_it(self):
+        updated_attribute = {
+            "some_nested_dict": {"KEY1": {"subKEY1": "updated_string"}}
+        }
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        changed_item = deepcopy(test_item_primary)
+        changed_item.update(**updated_attribute)
+
+        t = Table(self.table_name)
+        t.update_attribute(
+            test_item_primary, create_item_if_non_existent=True, **updated_attribute
+        )
+
+        self.assertEqual(changed_item, t.get(**test_item_primary))
 
     def test_update_with_attribute(self):
         updated_attribute = {"some_float": 249235.93}
