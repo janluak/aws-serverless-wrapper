@@ -29,6 +29,10 @@ class Table(NoSQLTable):
     def table(self):
         return self.__table
 
+    @property
+    def _item_not_exists_condition(self):
+        return " and ".join([f"attribute_not_exists({pk})" for pk in self.pk])
+
     def describe(self):
         from boto3 import client
 
@@ -180,9 +184,7 @@ class Table(NoSQLTable):
             item_copy = deepcopy(item)
             self.__table.put_item(
                 Item=object_with_float_to_decimal(item_copy),
-                ConditionExpression=" and ".join(
-                    [f"attribute_not_exists({pk})" for pk in self.pk]
-                ),
+                ConditionExpression=self._item_not_exists_condition,
             ) if not overwrite else self.__table.put_item(
                 Item=object_with_float_to_decimal(item_copy)
             )
