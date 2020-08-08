@@ -175,6 +175,29 @@ class Table(NoSQLTable):
                 self.__table.put_item(Item=object_with_float_to_decimal(item))
             elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise self.custom_exception.not_found_message(primary_dict)
+            elif (
+                CE.response["Error"]["Code"] == "ValidationException"
+                and "document path provided in the update expression is invalid for update"
+                in CE.args[0]
+            ):
+                from ...._helper import find_new_paths_in_dict
+
+                item = self.get(**primary_dict)
+                path_dict, new_sub_dict = find_new_paths_in_dict(item, new_data)
+                (
+                    expression,
+                    values,
+                    expression_name_map,
+                ) = self._create_update_expression(
+                    paths_to_new_data=path_dict, values_per_path=new_sub_dict
+                )
+                update_dict = {
+                    "Key": primary_dict,
+                    "UpdateExpression": expression,
+                    "ExpressionAttributeValues": values,
+                    "ExpressionAttributeNames": expression_name_map,
+                }
+                self.__table.update_item(**update_dict)
             else:
                 raise CE
 

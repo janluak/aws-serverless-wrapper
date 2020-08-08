@@ -749,6 +749,27 @@ class TestDynamoDB(TestDynamoDBBase):
             TE.exception.args[0],
         )
 
+    def test_update_with_attribute_in_non_existing_path(self):
+        updated_attribute = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"sub4": [{"sub_sub_key": "abc"}]}}
+            }
+        }
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        t.update_attribute(test_item_primary, **updated_attribute)
+
+        self.assertEqual(
+            updated_attribute["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][0],
+            t.get(**test_item_primary)["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][
+                0
+            ],
+        )
+
     def test_append_item(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
@@ -765,6 +786,28 @@ class TestDynamoDB(TestDynamoDBBase):
         result = t.get(**test_item_primary)
 
         self.assertEqual(changed_item, result)
+
+    def test_append_with_attribute_in_non_existing_path(self):
+        updated_attribute = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"sub4": [{"sub_sub_key": "abc"}]}}
+            }
+        }
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        t.update_attribute(test_item_primary, **updated_attribute)
+
+        self.assertEqual(
+            updated_attribute["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][0],
+            t.get(**test_item_primary)["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][
+                0
+            ],
+        )
 
     def test_scan_and_truncate(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
