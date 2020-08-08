@@ -170,7 +170,7 @@ class Table(NoSQLTable):
             ):
                 item = primary_dict.copy()
                 item.update(new_data)
-                self.__table.put_item(Item=object_with_float_to_decimal(item))
+                self.put(item)
             elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise self.custom_exception.not_found_message(primary_dict)
             elif CE.response["Error"]["Code"] == "ValidationException" and any(
