@@ -3,6 +3,7 @@ from .nested_dict import (
     hash_dict,
     update_nested_dict,
     find_path_values_in_dict,
+    find_new_paths_in_dict,
 )
 from .traverse_object import object_with_float_to_decimal, object_with_decimal_to_float
 from .environ_variables import environ

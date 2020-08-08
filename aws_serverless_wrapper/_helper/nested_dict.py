@@ -77,3 +77,32 @@ def find_path_values_in_dict(
     except IndexError:
         pass
     return all_paths, all_values
+
+
+def find_new_paths_in_dict(
+    origin: dict, new_data: dict, current_path=None, all_paths=None, all_values=None
+):
+
+    if not current_path:
+        current_path = list()
+    if all_paths is None:
+        all_paths = list()
+    if not all_values:
+        all_values = list()
+
+    if isinstance(new_data, dict):
+        for key in new_data:
+            current_path.append(key)
+            if key in origin:
+                all_paths, all_values = find_new_paths_in_dict(
+                    origin[key], new_data[key], current_path, all_paths, all_values
+                )
+            else:
+                all_paths.append(current_path.copy())
+                all_values.append(new_data[key])
+            current_path.pop(-1)
+    elif new_data != origin:
+        all_paths.append(current_path.copy())
+        all_values.append(new_data)
+
+    return all_paths, all_values

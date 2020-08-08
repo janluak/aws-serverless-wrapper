@@ -242,7 +242,6 @@ class TestHashDict(TestNestedDict):
 
 class TestUpdateNestedDict(TestNestedDict):
     def test_update_nested_key_reassignment(self):
-
         from aws_serverless_wrapper._helper import update_nested_dict
 
         origin_dict = deepcopy(reference_dict)
@@ -257,7 +256,6 @@ class TestUpdateNestedDict(TestNestedDict):
         assert origin_dict["some_dict"] == verify_dict["some_dict"]
 
     def test_update_nested_key_mutable(self):
-
         from aws_serverless_wrapper._helper import update_nested_dict
 
         origin_dict = deepcopy(reference_dict)
@@ -272,7 +270,6 @@ class TestUpdateNestedDict(TestNestedDict):
         assert origin_dict["some_dict"] == verify_dict["some_dict"]
 
     def test_update_part_of_nested_key_mutable(self):
-
         from aws_serverless_wrapper._helper import update_nested_dict
 
         origin_dict = deepcopy(reference_dict)
@@ -351,3 +348,63 @@ class TestFindAllPathsInDict(TestNestedDict):
 
         self.assertEqual(expected_paths, found_paths)
         self.assertEqual(expected_values, found_values)
+
+
+class TestNewPathsInDict(TestNestedDict):
+    def test_find_no_new_attribute(self):
+        origin = {"1": {"2": {"3": 4}}}
+        new_data = {"1": {"2": {"3": 4}}}
+
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == []
+        assert values == []
+
+    def test_find_no_new_path_only_new_attribute(self):
+        origin = {"1": {"2": {"3": 4}}}
+        new_data = {"1": {"2": {"3": 5}}}
+
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == [["1", "2", "3"]]
+        assert values == [5]
+
+    def test_find_single_new_path(self):
+        origin = {"1": {"2": {"3": 4}}}
+        new_data = {"1": {"2a": {"3a": 55}}}
+
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == [["1", "2a"]]
+        assert values == [{"3a": 55}]
+
+    def test_find_multiple_new_paths(self):
+        origin = {"1": {"2": {"3": 4}}}
+        new_data = {"1": {"2a": {"3a": 55}, "2b": {"3b": 678}}}
+
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == [["1", "2a"], ["1", "2b"]]
+        assert values == [{"3a": 55}, {"3b": 678}]
+
+    def test_find_new_and_existing_paths(self):
+        origin = {"1": {"2": {"3": 4}}}
+        new_data = {"1": {"2": {"3": 45}, "2a": {"3a": 55}, "2b": {"3b": 678}}}
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == [["1", "2", "3"], ["1", "2a"], ["1", "2b"]]
+        assert values == [45, {"3a": 55}, {"3b": 678}]
+
+    def test_find_new_and_existing_paths_additional_one_no_new_attribute(self):
+        origin = {"1": {"2": {"3": 4, "z": 0}}}
+        new_data = {"1": {"2": {"3": 45, "z": 0}, "2a": {"3a": 55}, "2b": {"3b": 678}}}
+        from aws_serverless_wrapper._helper.nested_dict import find_new_paths_in_dict
+
+        paths, values = find_new_paths_in_dict(origin, new_data)
+        assert paths == [["1", "2", "3"], ["1", "2a"], ["1", "2b"]]
+        assert values == [45, {"3a": 55}, {"3b": 678}]
