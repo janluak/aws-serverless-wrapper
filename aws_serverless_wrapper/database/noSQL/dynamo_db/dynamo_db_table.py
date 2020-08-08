@@ -63,21 +63,34 @@ class Table(NoSQLTable):
                 ]
 
     @staticmethod
-    def _create_update_expression(new_data, list_operation=False):
+    def _create_update_expression(
+        new_data: dict = None,
+        *,
+        paths_to_new_data=None,
+        values_per_path=None,
+        list_operation: (bool, list, tuple) = False,
+    ):
         expression = "set "
         expression_values = dict()
-        paths, values = find_path_values_in_dict(new_data)
+
+        if not paths_to_new_data or not values_per_path:
+            paths_to_new_data, values_per_path = find_path_values_in_dict(new_data)
+
+        if isinstance(list_operation, bool):
+            list_operation = [list_operation for i in paths_to_new_data]
 
         attribute_key_mapping = dict()
         letters_used = 0
 
         def update_expression_attribute():
-            if list_operation:
+            if list_operation[path_no]:
                 return f"list_append({string_path_to_attribute}, :{_value_update_chars[path_no]})"
             return f":{_value_update_chars[path_no]}"
 
         def update_expression_value():
-            expression_values[f":{_value_update_chars[path_no]}"] = values[path_no]
+            expression_values[f":{_value_update_chars[path_no]}"] = values_per_path[
+                path_no
+            ]
 
         def assign_key_to_attribute_path_step(attribute_name, letter_count):
             if attribute_name not in attribute_key_mapping:
@@ -97,8 +110,8 @@ class Table(NoSQLTable):
 
             return path_with_keys, letter_count
 
-        for path_no in range(len(paths)):
-            path = paths[path_no]
+        for path_no in range(len(paths_to_new_data)):
+            path = paths_to_new_data[path_no]
 
             path_with_letter_keys = list()
 
@@ -135,7 +148,7 @@ class Table(NoSQLTable):
         self._validate_input(new_data)
 
         expression, values, expression_name_map = self._create_update_expression(
-            new_data, list_operation
+            new_data, list_operation=list_operation
         )
 
         update_dict = {

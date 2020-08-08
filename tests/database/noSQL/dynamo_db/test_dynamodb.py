@@ -38,6 +38,10 @@ class TestDynamoDBBase(TestCase):
 
 
 class TestDynamoDBQuery(TestDynamoDBBase):
+    pass
+
+
+class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
     def test_update_query_with_string_attributes(self):
         expected_expression = "set #AA = :aa, #AB = :ab"
         expected_expression_name_mapping = {"#AA": "attribute1", "#AB": "attribute2"}
@@ -218,6 +222,143 @@ class TestDynamoDBQuery(TestDynamoDBBase):
             calculated_values,
             calculated_name_mapping,
         ) = t._create_update_expression(update_data, list_operation=True)
+        self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
+
+
+class TestDynamoDBQueryDirectProvisionOfPath(TestDynamoDBQuery):
+    def test_update_query_direct_provision_of_paths_and_values(self):
+        expected_expression = (
+            "set #AA.#AB.#AC = :aa, " "#AA.#AD = :ab, " "#AE.#AF = :ac"
+        )
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "grandchild1",
+            "#AD": "child2",
+            "#AE": "parent2",
+            "#AF": "child3",
+        }
+
+        expected_update_values = {
+            ":aa": "new_child1",
+            ":ab": "new_child2",
+            ":ac": "new_child3",
+        }
+
+        update_paths = [
+            ["parent1", "child1", "grandchild1"],
+            ["parent1", "child2"],
+            ["parent2", "child3"],
+        ]
+        update_values = ["new_child1", "new_child2", "new_child3"]
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(
+            paths_to_new_data=update_paths, values_per_path=update_values
+        )
+        self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
+
+    def test_append_query_direct_provision_of_paths_and_values(self):
+        expected_expression = (
+            "set #AA.#AB.#AC = list_append(#AA.#AB.#AC, :aa), "
+            "#AA.#AD = list_append(#AA.#AD, :ab), "
+            "#AE.#AF = list_append(#AE.#AF, :ac)"
+        )
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "grandchild1",
+            "#AD": "child2",
+            "#AE": "parent2",
+            "#AF": "child3",
+        }
+
+        expected_update_values = {
+            ":aa": "new_child1",
+            ":ab": "new_child2",
+            ":ac": "new_child3",
+        }
+
+        update_paths = [
+            ["parent1", "child1", "grandchild1"],
+            ["parent1", "child2"],
+            ["parent2", "child3"],
+        ]
+        update_values = ["new_child1", "new_child2", "new_child3"]
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(
+            paths_to_new_data=update_paths,
+            values_per_path=update_values,
+            list_operation=True,
+        )
+        self.assertEqual(expected_expression, calculated_expression)
+        self.assertEqual(expected_update_values, calculated_values)
+        self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
+
+    def test_partly_update_partly_append_query_direct_provision_of_paths_and_values(
+        self,
+    ):
+        expected_expression = (
+            "set #AA.#AB.#AC = :aa, "
+            "#AA.#AD = list_append(#AA.#AD, :ab), "
+            "#AE.#AF = :ac"
+        )
+        expected_expression_name_mapping = {
+            "#AA": "parent1",
+            "#AB": "child1",
+            "#AC": "grandchild1",
+            "#AD": "child2",
+            "#AE": "parent2",
+            "#AF": "child3",
+        }
+
+        expected_update_values = {
+            ":aa": "new_child1",
+            ":ab": "new_child2",
+            ":ac": "new_child3",
+        }
+
+        update_paths = [
+            ["parent1", "child1", "grandchild1"],
+            ["parent1", "child2"],
+            ["parent2", "child3"],
+        ]
+        update_values = ["new_child1", "new_child2", "new_child3"]
+
+        update_list_operation = [False, True, False]
+
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        (
+            calculated_expression,
+            calculated_values,
+            calculated_name_mapping,
+        ) = t._create_update_expression(
+            paths_to_new_data=update_paths,
+            values_per_path=update_values,
+            list_operation=update_list_operation,
+        )
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
         self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
