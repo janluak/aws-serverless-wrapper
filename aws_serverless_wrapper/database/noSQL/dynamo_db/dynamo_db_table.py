@@ -175,10 +175,12 @@ class Table(NoSQLTable):
                 self.__table.put_item(Item=object_with_float_to_decimal(item))
             elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 raise self.custom_exception.not_found_message(primary_dict)
-            elif (
-                CE.response["Error"]["Code"] == "ValidationException"
-                and "document path provided in the update expression is invalid for update"
-                in CE.args[0]
+            elif CE.response["Error"]["Code"] == "ValidationException" and any(
+                i in CE.args[0]
+                for i in [
+                    "document path provided in the update expression is invalid for update",
+                    "provided expression refers to an attribute that does not exist in the item",
+                ]
             ):
                 from ...._helper import find_new_paths_in_dict
 

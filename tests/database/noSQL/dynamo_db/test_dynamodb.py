@@ -798,9 +798,11 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t = Table(self.table_name)
 
-        t.put(test_item)
+        changed_item = deepcopy(test_item)
+        changed_item["some_nested_dict"]["KEY1"].update({"subKEY4": dict()})
+        t.put(changed_item)
 
-        t.update_attribute(test_item_primary, **updated_attribute)
+        t.update_append_list(test_item_primary, **updated_attribute)
 
         self.assertEqual(
             updated_attribute["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][0],
