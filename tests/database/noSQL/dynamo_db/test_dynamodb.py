@@ -186,7 +186,6 @@ class TestDynamoDBQuery(TestDynamoDBBase):
     #
     #     self.assertEqual(new_attribute["additional_key"], t.get(**test_item_primary)["additional_key"])
     #
-    #     t.delete(**test_item_primary)
 
     def test_append_list_with_item(self):
         expected_expression = (
@@ -468,8 +467,6 @@ class TestDynamoDB(TestDynamoDBBase):
             FEE.exception.args[0],
         )
 
-        t.delete(**test_item_primary)
-
     def test_doubled_put_item_with_same_primary_overwrite(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
 
@@ -482,7 +479,6 @@ class TestDynamoDB(TestDynamoDBBase):
         t.put(changed_item, overwrite=True)
         result = t.get(**test_item_primary)
         self.assertEqual(changed_item, result)
-        t.delete(**test_item_primary)
 
     def test_put_item_with_unexpected_property(self):
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
