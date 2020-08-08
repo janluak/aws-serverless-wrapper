@@ -158,9 +158,7 @@ class Table(NoSQLTable):
             "ExpressionAttributeNames": expression_name_map,
         }
 
-        if not create_item_if_non_existent or not any(
-            isinstance(v, dict) for v in new_data
-        ):
+        if create_item_if_non_existent:
             update_dict.update(ConditionExpression=self._item_exists_condition)
 
         try:
@@ -184,22 +182,27 @@ class Table(NoSQLTable):
             ):
                 from ...._helper import find_new_paths_in_dict
 
-                item = self.get(**primary_dict)
-                path_dict, new_sub_dict = find_new_paths_in_dict(item, new_data)
-                (
-                    expression,
-                    values,
-                    expression_name_map,
-                ) = self._create_update_expression(
-                    paths_to_new_data=path_dict, values_per_path=new_sub_dict
-                )
-                update_dict = {
-                    "Key": primary_dict,
-                    "UpdateExpression": expression,
-                    "ExpressionAttributeValues": values,
-                    "ExpressionAttributeNames": expression_name_map,
-                }
-                self.__table.update_item(**update_dict)
+                try:
+                    item = self.get(**primary_dict)
+                    path_dict, new_sub_dict = find_new_paths_in_dict(item, new_data)
+                    (
+                        expression,
+                        values,
+                        expression_name_map,
+                    ) = self._create_update_expression(
+                        paths_to_new_data=path_dict, values_per_path=new_sub_dict
+                    )
+                    update_dict = {
+                        "Key": primary_dict,
+                        "UpdateExpression": expression,
+                        "ExpressionAttributeValues": values,
+                        "ExpressionAttributeNames": expression_name_map,
+                    }
+                    self.__table.update_item(**update_dict)
+                except FileNotFoundError:
+                    item = primary_dict.copy()
+                    item.update(new_data)
+                    self.put(item)
             else:
                 raise CE
 

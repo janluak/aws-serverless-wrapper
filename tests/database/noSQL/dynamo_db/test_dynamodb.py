@@ -703,11 +703,19 @@ class TestDynamoDB(TestDynamoDBBase):
         changed_item.update(**updated_attribute)
 
         t = Table(self.table_name)
-        t.update_attribute(
-            test_item_primary, create_item_if_non_existent=True, **updated_attribute
-        )
+        with self.assertRaises(TypeError) as TE:
+            t.update_attribute(
+                test_item_primary, create_item_if_non_existent=True, **updated_attribute
+            )
 
-        self.assertEqual(changed_item, t.get(**test_item_primary))
+        self.assertEqual(
+            {
+                "statusCode": 400,
+                "body": "'some_string' is a required property for table TableForTests and is missing",
+                "headers": {"Content-Type": "text/plain"},
+            },
+            TE.exception.args[0],
+        )
 
     def test_update_with_attribute(self):
         updated_attribute = {"some_float": 249235.93}
