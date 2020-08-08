@@ -200,17 +200,17 @@ class NoSQLTable(ABC):
         pass
 
     @abstractmethod
+    def add_new_attribute(self, primary_dict, new_data: dict, update_if_existent=False):
+        pass
+
+    @abstractmethod
     def update_attribute(
-        self, primary_dict, create_item_if_non_existent=False, **new_data
+        self,
+        primary_dict,
+        set_new_attribute_if_not_existent=False,
+        create_item_if_non_existent=False,
+        **new_data,
     ):
-        pass
-
-    @abstractmethod
-    def update_add_new_attribute(self, primary_dict, new_data: dict):
-        pass
-
-    @abstractmethod
-    def update_if_not_exists(self):
         pass
 
     @abstractmethod

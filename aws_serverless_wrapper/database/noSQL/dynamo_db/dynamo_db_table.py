@@ -204,12 +204,7 @@ class Table(NoSQLTable):
                 raise CE
 
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
-    def update_attribute(
-        self, primary_dict, create_item_if_non_existent=False, **new_data
-    ):
-        self.__general_update(primary_dict, create_item_if_non_existent, **new_data)
-
-    def update_add_new_attribute(self, primary_dict, new_data: dict):
+    def add_new_attribute(self, primary_dict, new_data: dict, update_if_existent=False):
         # self._primary_key_checker(primary_dict)
         # expression, values = self._create_update_replace_expression(new_data, add_instead_of_replacement=True)
         # print(expression)
@@ -221,9 +216,14 @@ class Table(NoSQLTable):
         # expression "ADD path.to.attribute :value"
         raise NotImplemented
 
-    def update_if_not_exists(self):
-        #  expression "SET path.to.attribute = if_not_exists(path.to.attribute, :newAttribute)"
-        raise NotImplemented
+    def update_attribute(
+        self,
+        primary_dict,
+        set_new_attribute_if_not_existent=False,
+        create_item_if_non_existent=False,
+        **new_data,
+    ):
+        self.__general_update(primary_dict, create_item_if_non_existent, **new_data)
 
     def update_list_item(self, primary_dict, item_no, **new_data):
         raise NotImplemented
