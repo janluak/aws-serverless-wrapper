@@ -6,6 +6,14 @@ from ..._helper import environ, find_path_values_in_dict
 from ...schema_validation import SchemaValidator
 
 
+class AttributeExistsException(AttributeError):
+    pass
+
+
+class AttributeNotExistsException(AttributeError):
+    pass
+
+
 class CustomExceptionRaiser:
     def __init__(self, table):
         self.table = table
@@ -200,7 +208,13 @@ class NoSQLTable(ABC):
         pass
 
     @abstractmethod
-    def add_new_attribute(self, primary_dict, new_data: dict, update_if_existent=False):
+    def add_new_attribute(
+        self,
+        primary_dict,
+        new_data: dict,
+        update_if_existent=False,
+        create_item_if_non_existent=False,
+    ):
         pass
 
     @abstractmethod
@@ -219,7 +233,11 @@ class NoSQLTable(ABC):
 
     @abstractmethod
     def update_append_list(
-        self, primary_dict, create_item_if_non_existent=False, **new_data
+        self,
+        primary_dict,
+        set_new_attribute_if_not_existent=False,
+        create_item_if_non_existent=False,
+        **new_data,
     ):
         pass
 

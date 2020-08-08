@@ -60,6 +60,7 @@ class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
@@ -86,6 +87,7 @@ class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
@@ -120,6 +122,7 @@ class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
@@ -160,6 +163,7 @@ class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(update_data)
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
@@ -221,6 +225,7 @@ class TestDynamoDBQueryWithUpdateDictionaries(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(update_data, list_operation=True)
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
@@ -262,6 +267,7 @@ class TestDynamoDBQueryDirectProvisionOfPath(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(
             paths_to_new_data=update_paths, values_per_path=update_values
         )
@@ -305,6 +311,7 @@ class TestDynamoDBQueryDirectProvisionOfPath(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(
             paths_to_new_data=update_paths,
             values_per_path=update_values,
@@ -354,6 +361,7 @@ class TestDynamoDBQueryDirectProvisionOfPath(TestDynamoDBQuery):
             calculated_expression,
             calculated_values,
             calculated_name_mapping,
+            _,
         ) = t._create_update_expression(
             paths_to_new_data=update_paths,
             values_per_path=update_values,
@@ -362,6 +370,64 @@ class TestDynamoDBQueryDirectProvisionOfPath(TestDynamoDBQuery):
         self.assertEqual(expected_expression, calculated_expression)
         self.assertEqual(expected_update_values, calculated_values)
         self.assertEqual(expected_expression_name_mapping, calculated_name_mapping)
+
+
+class TestDynamoDBQueryConditions(TestDynamoDBQuery):
+    def test_no_conditions(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._build_conditions(False, False)
+
+        self.assertEqual(None, condition)
+
+    def test_item_exists(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._item_exists_condition
+
+        self.assertEqual("attribute_exists(primary_partition_key)", condition)
+
+    def test_item_not_exists(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._item_not_exists_condition
+
+        self.assertEqual("attribute_not_exists(primary_partition_key)", condition)
+
+    def test_update_attribute_if_exists(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._build_conditions([["#AA", "#AB"]], False)
+
+        self.assertEqual("attribute_exists(#AA.#AB)", condition)
+
+    def test_update_attribute_if_multiple_exists(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._build_conditions([["#AA", "#AB"], ["#AA", "#AC"]], False)
+
+        self.assertEqual(
+            "attribute_exists(#AA.#AB) and attribute_exists(#AA.#AC)", condition
+        )
+
+    def test_set_attribute_if_not_exists(self):
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        condition = t._build_conditions(False, [["#AA", "#AB"]])
+
+        self.assertEqual("attribute_not_exists(#AA.#AB)", condition)
 
 
 class TestGetSubSchema(TestDynamoDBBase):
@@ -741,6 +807,23 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t.delete(**test_item_primary)
 
+    def test_update_fail_non_existent_attribute(self):
+        updated_attribute = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"sub4": [{"sub_sub_key": "abc"}]}}
+            }
+        }
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        from aws_serverless_wrapper.database.noSQL import AttributeNotExistsException
+
+        with self.assertRaises(AttributeNotExistsException):
+            t.update_attribute(test_item_primary, **updated_attribute)
+
     def test_update_with_attribute_of_false_type(self):
         updated_attribute = {"some_string": False}
         from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
@@ -777,13 +860,83 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t.put(test_item)
 
-        t.update_attribute(test_item_primary, **updated_attribute)
+        t.update_attribute(
+            test_item_primary,
+            **updated_attribute,
+            set_new_attribute_if_not_existent=True,
+        )
 
         self.assertEqual(
             updated_attribute["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][0],
             t.get(**test_item_primary)["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][
                 0
             ],
+        )
+
+    def test_add_attribute(self):
+        added_attribute = {
+            "some_nested_dict": {
+                "KEY1": {"subKEY4": {"sub0": [{"sub_sub_key": "abc"}]}}
+            }
+        }
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        t.add_new_attribute(test_item_primary, added_attribute)
+
+        self.assertEqual(
+            {"sub0": [{"sub_sub_key": "abc"}]},
+            t.get(**test_item_primary)["some_nested_dict"]["KEY1"]["subKEY4"],
+        )
+
+    def test_add_attribute_on_existing_attribute_failure(self):
+        added_attribute = {"some_dict": {"key1": "abc"}}
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        from aws_serverless_wrapper.database.noSQL import AttributeExistsException
+
+        with self.assertRaises(AttributeExistsException):
+            t.add_new_attribute(test_item_primary, added_attribute)
+
+    def test_add_attribute_on_existing_attribute_update(self):
+        added_attribute = {"some_dict": {"key1": "abc"}}
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        t.put(test_item)
+
+        t.add_new_attribute(test_item_primary, added_attribute, update_if_existent=True)
+
+        self.assertEqual(
+            "abc", t.get(**test_item_primary)["some_dict"]["key1"],
+        )
+
+    def test_add_attribute_on_non_existing_item_with_creation(self):
+        added_attribute = {"some_dict": {"key1": "abc"}}
+        from aws_serverless_wrapper.database.noSQL.dynamo_db import Table
+
+        t = Table(self.table_name)
+
+        with self.assertRaises(TypeError) as TE:
+            t.add_new_attribute(
+                test_item_primary, added_attribute, create_item_if_non_existent=True
+            )
+
+        self.assertEqual(
+            {
+                "statusCode": 400,
+                "body": "'some_string' is a required property for table TableForTests and is missing",
+                "headers": {"Content-Type": "text/plain"},
+            },
+            TE.exception.args[0],
         )
 
     def test_append_item(self):

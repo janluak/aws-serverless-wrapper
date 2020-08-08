@@ -9,7 +9,11 @@ from boto3 import resource
 from botocore.exceptions import ClientError
 from copy import deepcopy
 from .resource_config import resource_config
-from .._base_class import NoSQLTable
+from .._base_class import (
+    NoSQLTable,
+    AttributeExistsException,
+    AttributeNotExistsException,
+)
 
 dynamo_db_resource = resource("dynamodb", **resource_config)
 
@@ -37,6 +41,18 @@ class Table(NoSQLTable):
     @property
     def _item_exists_condition(self):
         return " and ".join([f"attribute_exists({pk})" for pk in self.pk])
+
+    @staticmethod
+    def _attribute_not_exists_condition(paths_to_attributes):
+        return " and ".join(
+            [f"attribute_not_exists({'.'.join(path)})" for path in paths_to_attributes]
+        )
+
+    @staticmethod
+    def _attribute_exists_condition(paths_to_attributes):
+        return " and ".join(
+            [f"attribute_exists({'.'.join(path)})" for path in paths_to_attributes]
+        )
 
     def describe(self):
         from boto3 import client
@@ -134,11 +150,35 @@ class Table(NoSQLTable):
             expression[:-2],
             object_with_float_to_decimal(expression_values),
             {v: k for k, v in attribute_key_mapping.items()},
+            paths_to_new_data,
         )
+
+    def _build_conditions(
+        self,
+        existing_attribute_paths: (list, None),
+        not_existing_attribute_paths: (list, None),
+    ):
+
+        conditions = list()
+
+        if existing_attribute_paths:
+            conditions.append(
+                self._attribute_exists_condition(existing_attribute_paths)
+            )
+
+        if not_existing_attribute_paths:
+            conditions.append(
+                self._attribute_not_exists_condition(not_existing_attribute_paths)
+            )
+
+        return " and ".join(conditions) if conditions else None
 
     def __general_update(
         self,
         primary_dict,
+        *,
+        require_attributes_already_present=False,
+        require_attributes_to_be_missing=False,
         create_item_if_non_existent,
         list_operation=False,
         **new_data,
@@ -147,9 +187,12 @@ class Table(NoSQLTable):
 
         self._validate_input(new_data)
 
-        expression, values, expression_name_map = self._create_update_expression(
-            new_data, list_operation=list_operation
-        )
+        (
+            expression,
+            values,
+            expression_name_map,
+            paths_to_new_data,
+        ) = self._create_update_expression(new_data, list_operation=list_operation)
 
         update_dict = {
             "Key": primary_dict,
@@ -158,66 +201,81 @@ class Table(NoSQLTable):
             "ExpressionAttributeNames": expression_name_map,
         }
 
-        if create_item_if_non_existent:
-            update_dict.update(ConditionExpression=self._item_exists_condition)
+        if conditions := self._build_conditions(
+            existing_attribute_paths=paths_to_new_data
+            if require_attributes_already_present
+            else None,
+            not_existing_attribute_paths=paths_to_new_data
+            if require_attributes_to_be_missing
+            else None,
+        ):
+
+            update_dict.update(ConditionExpression=conditions)
 
         try:
             self.__table.update_item(**update_dict)
         except ClientError as CE:
-            if (
-                CE.response["Error"]["Code"] == "ConditionalCheckFailedException"
-                and create_item_if_non_existent
-            ):
-                item = primary_dict.copy()
-                item.update(new_data)
-                self.put(item)
-            elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                raise self.custom_exception.not_found_message(primary_dict)
-            elif CE.response["Error"]["Code"] == "ValidationException" and any(
-                i in CE.args[0]
-                for i in [
-                    "document path provided in the update expression is invalid for update",
-                    "provided expression refers to an attribute that does not exist in the item",
-                ]
-            ):
-                from ...._helper import find_new_paths_in_dict
+            if CE.response["Error"]["Code"] == "ValidationException":
+                if "document path provided in the update expression is invalid for update":
+                    from ...._helper import find_new_paths_in_dict
 
+                    try:
+                        item = self.get(**primary_dict)
+                        path_dict, new_sub_dict = find_new_paths_in_dict(item, new_data)
+                        (
+                            expression,
+                            values,
+                            expression_name_map,
+                            _,
+                        ) = self._create_update_expression(
+                            paths_to_new_data=path_dict, values_per_path=new_sub_dict
+                        )
+                        update_dict = {
+                            "Key": primary_dict,
+                            "UpdateExpression": expression,
+                            "ExpressionAttributeValues": values,
+                            "ExpressionAttributeNames": expression_name_map,
+                        }
+                        self.__table.update_item(**update_dict)
+                    except FileNotFoundError as FNF:
+                        if create_item_if_non_existent:
+                            item = primary_dict.copy()
+                            item.update(new_data)
+                            self.put(item)
+                        else:
+                            raise FNF
+
+            elif CE.response["Error"]["Code"] == "ConditionalCheckFailedException":
                 try:
                     item = self.get(**primary_dict)
-                    path_dict, new_sub_dict = find_new_paths_in_dict(item, new_data)
-                    (
-                        expression,
-                        values,
-                        expression_name_map,
-                    ) = self._create_update_expression(
-                        paths_to_new_data=path_dict, values_per_path=new_sub_dict
-                    )
-                    update_dict = {
-                        "Key": primary_dict,
-                        "UpdateExpression": expression,
-                        "ExpressionAttributeValues": values,
-                        "ExpressionAttributeNames": expression_name_map,
-                    }
-                    self.__table.update_item(**update_dict)
-                except FileNotFoundError:
-                    item = primary_dict.copy()
-                    item.update(new_data)
-                    self.put(item)
+                    if require_attributes_already_present:
+                        raise AttributeNotExistsException
+                    else:
+                        raise AttributeExistsException
+                except FileNotFoundError as FNF:
+                    if create_item_if_non_existent:
+                        item = primary_dict.copy()
+                        item.update(new_data)
+                        self.put(item)
+                    else:
+                        raise FNF
             else:
                 raise CE
 
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
-    def add_new_attribute(self, primary_dict, new_data: dict, update_if_existent=False):
-        # self._primary_key_checker(primary_dict)
-        # expression, values = self._create_update_replace_expression(new_data, add_instead_of_replacement=True)
-        # print(expression)
-        # self.table.update_item(
-        #     Key=primary_dict,
-        #     UpdateExpression=expression,
-        #     ExpressionAttributeValues=values
-        # )
-        # expression "ADD path.to.attribute :value"
-        raise NotImplemented
+    def add_new_attribute(
+        self,
+        primary_dict,
+        new_data: dict,
+        update_if_existent=False,
+        create_item_if_non_existent=False,
+    ):
+        self.__general_update(
+            primary_dict,
+            require_attributes_to_be_missing=True if not update_if_existent else False,
+            create_item_if_non_existent=create_item_if_non_existent,
+            **new_data,
+        )
 
     def update_attribute(
         self,
@@ -226,16 +284,31 @@ class Table(NoSQLTable):
         create_item_if_non_existent=False,
         **new_data,
     ):
-        self.__general_update(primary_dict, create_item_if_non_existent, **new_data)
+        self.__general_update(
+            primary_dict,
+            require_attributes_already_present=True
+            if not set_new_attribute_if_not_existent
+            else False,
+            create_item_if_non_existent=create_item_if_non_existent,
+            **new_data,
+        )
 
     def update_list_item(self, primary_dict, item_no, **new_data):
         raise NotImplemented
 
     def update_append_list(
-        self, primary_dict, create_item_if_non_existent=False, **new_data
+        self,
+        primary_dict,
+        set_new_attribute_if_not_existent=False,
+        create_item_if_non_existent=False,
+        **new_data,
     ):
         self.__general_update(
-            primary_dict, create_item_if_non_existent, list_operation=True, **new_data
+            primary_dict,
+            require_attributes_already_present=set_new_attribute_if_not_existent,
+            create_item_if_non_existent=create_item_if_non_existent,
+            list_operation=True,
+            **new_data,
         )
 
     def update_increment(self, primary, path_of_to_increment):
