@@ -39,7 +39,7 @@ def test_error_log_item_basic():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "lambda_name": "test_function",
@@ -55,7 +55,7 @@ def test_error_log_item_exception():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "lambda_name": "test_function",
@@ -99,7 +99,7 @@ def test_error_log_item_message():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "lambda_name": "test_function",
@@ -121,7 +121,7 @@ def test_error_log_item_exception_additional_message():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "lambda_name": "test_function",
@@ -168,7 +168,7 @@ def test_error_log_item_hierarchy_exception():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "service_name": "group",
@@ -221,7 +221,7 @@ def test_error_log_item_with_event_data():
     }
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "service_name": "group",
@@ -249,7 +249,7 @@ def test_error_log_item_with_exception_and_event_data():
     }
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "service_name": "group",
@@ -304,7 +304,7 @@ def test_log_exception_to_logging_no_event_data():
         "service_name": "group",
         "lambda_name": "test_function",
         "function_version": "$LATEST",
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "exception_type": "Exception",
         "exception_text": "exception text",
         "exception_file": path.realpath(__file__),
@@ -341,7 +341,7 @@ def test_log_exception_based_on_thrown_status_code_exception():
     from aws_serverless_wrapper._helper.error_logging import _create_error_log_item
 
     reference_exception_log_item = {
-        "timestamp": "2020-01-01 00:00:00",
+        "timestamp": 1577836800.0,
         "aws_request_id": "uuid",
         "aws_log_group": "test/log/group",
         "lambda_name": "test_function",

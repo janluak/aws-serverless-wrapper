@@ -21,7 +21,7 @@ def _create_error_log_item(
         "service_name": context.log_group_name.split("/")[-1],
         "lambda_name": context.function_name,
         "function_version": context.function_version,
-        "timestamp": str(datetime.utcnow()),
+        "timestamp": datetime.utcnow().timestamp(),
     }
 
     if exception:
