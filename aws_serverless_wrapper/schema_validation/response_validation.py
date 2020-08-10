@@ -21,7 +21,7 @@ class ResponseDataValidator(DataValidator):
             super().__init__(response_data, file, url, raw)
             self.verify()
         except EnvironmentError:
-            exception_text = f"no specified response schema available for statusCode 418\nresponse: {response_data}"
+            exception_text = f"no specified response schema available for statusCode {self.statusCode}\nresponse: {response_data}"
             if environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"]:
                 raise EnvironmentError(
                     {
