@@ -104,7 +104,7 @@ def test_missing_headers(run_from_file_directory):
 
     assert response == {
         "statusCode": 400,
-        "body": "headers has to be included",
+        "body": "'headers' is a required property",
         "headers": {"Content-Type": "text/plain"},
     }
 

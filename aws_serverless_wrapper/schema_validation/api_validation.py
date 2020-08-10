@@ -1,104 +1,56 @@
 from json import loads, JSONDecodeError
-from .schema_validator import SchemaValidator
-from jsonschema.exceptions import ValidationError
+from ._validation_base_class import DataValidator
 
 
 __all__ = ["APIDataValidator"]
 
 
-class APIDataValidator:
+class APIDataValidator(DataValidator):
     def __init__(
-        self, api_data: dict, file: str = None, url: str = None, raw: dict = None,
+        self, api_data: dict, file: str = None, url: str = None, raw: dict = None
     ):
-        self.__httpMethod = api_data["httpMethod"]
-
-        file = self.__craft_full_origin(file)
-        url = self.__craft_full_origin(url)
-
-        try:
-            self.__schema_validator = SchemaValidator(file, url, raw)
-        except FileNotFoundError:
-            raise EnvironmentError(
-                {
-                    "statusCode": 501,
-                    "body": "API is not defined",
-                    "headers": {"Content-Type": "text/plain"},
-                }
-            )
-        self.__data = api_data
+        super().__init__(api_data, file, url, raw)
 
         self.__convert_none_to_empty_dict()
         self.__rename_multi_value_query_to_query_param()
 
         self.__decode_json_body()
 
-        self.__verify()
+        self.verify()
 
     @property
-    def schema(self):
-        return self.__schema_validator.schema
+    def httpMethod(self) -> str:
+        return self.data["httpMethod"]
 
-    @property
-    def data(self):
-        return self.__data
-
-    def __craft_full_origin(self, origin):
-        if origin:
-            if origin[-1] == "/":
-                origin = self.__insert_api_name_to_origin(origin)
-
-            return self.__insert_http_method_to_origin(origin)
-
-    @staticmethod
-    def __insert_api_name_to_origin(origin):
-        from inspect import stack
-
-        parent_function = stack()[3][3]
-
-        origin += parent_function
-
-        return origin
-
-    def __insert_http_method_to_origin(self, origin):
-        if self.__httpMethod not in origin:
+    def insert_specifics_to_origin(self, origin: str) -> str:
+        if self.httpMethod not in origin:
             if ".json" == origin[-5:]:
                 origin = origin[:-5]
 
-            origin += "-" + self.__httpMethod + ".json"
+            origin += "-" + self.httpMethod + ".json"
 
         return origin
-
-    def __check_for_required_parameter_types(self):
-        for key in self.schema["required"]:
-            if key not in self.__data:
-                raise TypeError(
-                    {
-                        "statusCode": 400,
-                        "body": f"{key} has to be included",
-                        "headers": {"Content-Type": "text/plain"},
-                    }
-                )
 
     def __convert_none_to_empty_dict(self):
         # for json_schema validator not able to process type(None)
         for key in ["body", "pathParameters", "multiValueQueryStringParameters"]:
             try:
-                if isinstance(self.__data[key], type(None)):
-                    self.__data[key] = dict()
+                if isinstance(self.data[key], type(None)):
+                    self.data[key] = dict()
             except KeyError:
                 pass
 
     def __rename_multi_value_query_to_query_param(self):
-        self.__data["queryParameters"] = (
-            self.__data["multiValueQueryStringParameters"]
-            if "multiValueQueryStringParameters" in self.__data
+        self.data["queryParameters"] = (
+            self.data["multiValueQueryStringParameters"]
+            if "multiValueQueryStringParameters" in self.data
             else dict()
         )
 
     def __decode_json_body(self):
-        if "body" in self.__data and not isinstance(self.__data["body"], dict):
+        if "body" in self.data and not isinstance(self.data["body"], dict):
             try:
-                self.__data["body"] = loads(self.__data["body"])
+                self.data["body"] = loads(self.data["body"])
             except (JSONDecodeError, TypeError):
                 raise TypeError(
                     {
@@ -108,18 +60,19 @@ class APIDataValidator:
                     }
                 )
 
-    def __verify(self):
-        self.__check_for_required_parameter_types()
-
-        try:
-            self.__schema_validator.validate(self.__data)
-        except ValidationError as err:
-            raise TypeError(
-                {
-                    "statusCode": 400
-                    if (len(err.path) == 0 or "httpMethod" != err.path[0])
-                    else 405,
-                    "body": err.__str__(),
-                    "headers": {"Content-Type": "text/plain"},
-                }
-            )
+    @staticmethod
+    def handle_exception(validation_error):
+        raise TypeError(
+            {
+                "statusCode": 400
+                if (
+                    len(validation_error.path) == 0
+                    or "httpMethod" != validation_error.path[0]
+                )
+                else 405,
+                "body": validation_error.message
+                if len(validation_error.__str__().split("\n")) > 12
+                else validation_error.__str__(),
+                "headers": {"Content-Type": "text/plain"},
+            }
+        )

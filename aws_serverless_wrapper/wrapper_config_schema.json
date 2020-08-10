@@ -97,6 +97,24 @@
         }
       }
     },
+    "API_RESPONSE_VERIFICATION": {
+      "description": "if the response from API call shall be checked for fitting response schema (e.g. for ensuring returning correct data)",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SCHEMA_ORIGIN": {
+          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
+        },
+        "SCHEMA_DIRECTORY": {
+          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
+        },
+        "RETURN_INTERNAL_SERVER_ERROR": {
+          "description": "if set to true, a missing  (4xx and 5xx statusCodes are excluded and will always be returned)",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "ERROR_LOG": {
       "description": "how shall internal errors be logged?",
       "$ref": "wrapper_config_schema.json#/definitions/error_log_config"

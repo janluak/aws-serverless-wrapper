@@ -118,7 +118,7 @@ class TestAPIValidation(TestCase):
         self.assertEqual(
             {
                 "statusCode": 400,
-                "body": "body has to be included",
+                "body": "'body' is a required property",
                 "headers": {"Content-Type": "text/plain"},
             },
             TE.exception.args[0],
@@ -190,7 +190,7 @@ class TestAPIValidation(TestCase):
         self.assertEqual(
             {
                 "statusCode": 400,
-                "body": "pathParameters has to be included",
+                "body": "'pathParameters' is a required property",
                 "headers": {"Content-Type": "text/plain"},
             },
             TE.exception.args[0],

@@ -66,6 +66,22 @@ class __LambdaHandler(ABC):
                         "headers": {"Content-Type": "application/json"},
                     }
 
+    def output_verification(self, response):
+        if environ["API_RESPONSE_VERIFICATION"]:
+            from ..schema_validation import ResponseDataValidator
+
+            origin_type = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_ORIGIN"]
+            origin_value = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_DIRECTORY"]
+
+            if "/" == origin_value[-1]:
+                origin_value += self._get_api_name()
+
+            ResponseDataValidator(
+                response,
+                httpMethod=self.request_data["httpMethod"],
+                **{origin_type: origin_value},
+            )
+
     def _log_error(self, exc):
         if "abstract class" in exc.args[0]:
             raise exc
@@ -110,12 +126,15 @@ class __LambdaHandler(ABC):
             return bad_input_response
 
         try:
+
             if response := self.run():
-                return response
+                self.output_verification(response)
             else:
-                return {"statusCode": 200}
+                response = {"statusCode": 200}
         except Exception as e:
-            return self._log_error(e)
+            response = self._log_error(e)
+
+        return response
 
 
 class LambdaHandlerOfClass(__LambdaHandler):

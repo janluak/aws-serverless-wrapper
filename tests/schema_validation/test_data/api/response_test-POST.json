@@ -1,0 +1,38 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "API for testing response verification",
+    "description": "Some basic template for describing an API",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "httpMethod": {
+            "description": "the ReST method(s) type allowed for this API",
+            "type": "string",
+            "const": "POST"
+        },
+        "headers": {
+        },
+        "body": {
+            "description": "contents of the request body, JSON formatted",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "response_statusCode": {
+                    "description": "the statusCode to be returned",
+                    "type": "integer"
+                },
+                "response_body": {
+                    "description": "the body to be returned",
+                    "type": [
+                        "object",
+                        "string"
+                    ]
+                }
+            }
+        }
+    },
+    "required": [
+        "headers",
+        "body"
+    ]
+}

@@ -5,5 +5,9 @@
     "LOG_ERRORS": {
       "API_RESPONSE": false
     }
+  },
+  "API_RESPONSE_VERIFICATION": {
+    "SCHEMA_ORIGIN": "file",
+    "SCHEMA_DIRECTORY": "../schema_validation/test_data/response/"
   }
 }
