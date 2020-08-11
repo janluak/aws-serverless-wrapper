@@ -157,21 +157,36 @@ class Table(NoSQLTable):
         self,
         existing_attribute_paths: (list, None),
         not_existing_attribute_paths: (list, None),
+        expression_name_map: dict,
     ):
+
+        if not existing_attribute_paths and not not_existing_attribute_paths:
+            return None
 
         conditions = list()
 
+        expression_name_map = {v: k for k, v in expression_name_map.items()}
+
         if existing_attribute_paths:
+            existing_attribute_paths = [
+                [expression_name_map[path[pos]] for pos in range(len(path))]
+                for path in existing_attribute_paths
+            ]
+
             conditions.append(
                 self._attribute_exists_condition(existing_attribute_paths)
             )
 
         if not_existing_attribute_paths:
+            not_existing_attribute_paths = [
+                [expression_name_map[path[pos]] for pos in range(len(path))]
+                for path in not_existing_attribute_paths
+            ]
             conditions.append(
                 self._attribute_not_exists_condition(not_existing_attribute_paths)
             )
 
-        return " and ".join(conditions) if conditions else None
+        return " and ".join(conditions)
 
     def __general_update(
         self,
@@ -208,8 +223,8 @@ class Table(NoSQLTable):
             not_existing_attribute_paths=paths_to_new_data
             if require_attributes_to_be_missing
             else None,
+            expression_name_map=expression_name_map,
         ):
-
             update_dict.update(ConditionExpression=conditions)
 
         try:

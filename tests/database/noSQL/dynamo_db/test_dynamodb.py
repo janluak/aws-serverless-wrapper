@@ -378,7 +378,7 @@ class TestDynamoDBQueryConditions(TestDynamoDBQuery):
 
         t = Table(self.table_name)
 
-        condition = t._build_conditions(False, False)
+        condition = t._build_conditions(False, False, dict())
 
         self.assertEqual(None, condition)
 
@@ -405,7 +405,9 @@ class TestDynamoDBQueryConditions(TestDynamoDBQuery):
 
         t = Table(self.table_name)
 
-        condition = t._build_conditions([["#AA", "#AB"]], False)
+        paths = [["p1", "p2"]]
+        name_map = {"#AA": "p1", "#AB": "p2"}
+        condition = t._build_conditions(paths, False, name_map)
 
         self.assertEqual("attribute_exists(#AA.#AB)", condition)
 
@@ -414,7 +416,9 @@ class TestDynamoDBQueryConditions(TestDynamoDBQuery):
 
         t = Table(self.table_name)
 
-        condition = t._build_conditions([["#AA", "#AB"], ["#AA", "#AC"]], False)
+        paths = [["p1", "p2"], ["p1", "p3"]]
+        name_map = {"#AA": "p1", "#AB": "p2", "#AC": "p3"}
+        condition = t._build_conditions(paths, False, name_map)
 
         self.assertEqual(
             "attribute_exists(#AA.#AB) and attribute_exists(#AA.#AC)", condition
@@ -425,7 +429,9 @@ class TestDynamoDBQueryConditions(TestDynamoDBQuery):
 
         t = Table(self.table_name)
 
-        condition = t._build_conditions(False, [["#AA", "#AB"]])
+        paths = [["p1", "p2"]]
+        name_map = {"#AA": "p1", "#AB": "p2"}
+        condition = t._build_conditions(False, paths, name_map)
 
         self.assertEqual("attribute_not_exists(#AA.#AB)", condition)
 
