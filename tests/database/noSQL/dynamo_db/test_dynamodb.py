@@ -977,7 +977,16 @@ class TestDynamoDB(TestDynamoDBBase):
         changed_item["some_nested_dict"]["KEY1"].update({"subKEY4": dict()})
         t.put(changed_item)
 
-        t.update_append_list(test_item_primary, **updated_attribute)
+        from aws_serverless_wrapper.database.noSQL import AttributeNotExistsException
+
+        with self.assertRaises(AttributeNotExistsException):
+            t.update_append_list(test_item_primary, **updated_attribute)
+
+        t.update_append_list(
+            test_item_primary,
+            set_new_attribute_if_not_existent=True,
+            **updated_attribute,
+        )
 
         self.assertEqual(
             updated_attribute["some_nested_dict"]["KEY1"]["subKEY4"]["sub4"][0],

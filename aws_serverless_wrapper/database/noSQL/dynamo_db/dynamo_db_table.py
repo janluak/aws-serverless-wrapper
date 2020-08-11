@@ -231,7 +231,15 @@ class Table(NoSQLTable):
             self.__table.update_item(**update_dict)
         except ClientError as CE:
             if CE.response["Error"]["Code"] == "ValidationException":
-                if "document path provided in the update expression is invalid for update":
+                if "document path provided in the update expression is invalid for update" in CE.response[
+                    "Error"
+                ][
+                    "Message"
+                ] or (
+                    "provided expression refers to an attribute that does not exist in the item"
+                    in CE.response["Error"]["Message"]
+                    and not require_attributes_already_present
+                ):
                     from ...._helper import find_new_paths_in_dict
 
                     try:
@@ -320,7 +328,9 @@ class Table(NoSQLTable):
     ):
         self.__general_update(
             primary_dict,
-            require_attributes_already_present=set_new_attribute_if_not_existent,
+            require_attributes_already_present=False
+            if set_new_attribute_if_not_existent
+            else True,
             create_item_if_non_existent=create_item_if_non_existent,
             list_operation=True,
             **new_data,
