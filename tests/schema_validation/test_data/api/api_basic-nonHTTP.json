@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Basic API",
+  "description": "Some basic template for describing an API that is not originating from ReST calls",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "body_key1": {
+          "description": "containing only a string",
+          "type": "string"
+        },
+        "body_key2": {
+          "description": "containing a not further specified dictionary",
+          "type": "object"
+        }
+  },
+  "required": [
+    "body_key1",
+    "body_key2"
+  ]
+}

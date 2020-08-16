@@ -196,13 +196,26 @@ class TestAPIValidation(TestCase):
             TE.exception.args[0],
         )
 
-    def test_complete_aws_event_data(self):
+    def test_complete_aws_rest_event_data(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
             APIDataValidator,
         )
 
         api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
         api_data = load_single(
-            f"{dirname(realpath(__file__))}/test_data/api/request_aws_event.json"
+            f"{dirname(realpath(__file__))}/test_data/api/request_aws_http_event.json"
         )
         APIDataValidator(file=api_schema_file, api_data=api_data)
+
+    def test_non_rest_event(self):
+        from aws_serverless_wrapper.schema_validation.api_validation import (
+            APIDataValidator,
+        )
+
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_data = {"body_key1": "some_string", "body_key2": {"key2.1": 2}}
+        APIDataValidator(file=api_schema_file, api_data=api_data)
+
+        api_data = {"body_key1": "some_string", "body_key2": 2}
+        with self.assertRaises(TypeError):
+            APIDataValidator(file=api_schema_file, api_data=api_data)

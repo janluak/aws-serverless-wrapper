@@ -11,8 +11,9 @@ class APIDataValidator(DataValidator):
     ):
         super().__init__(api_data, file, url, raw)
 
-        self.__convert_none_to_empty_dict()
-        self.__rename_multi_value_query_to_query_param()
+        if self.httpMethod != "nonHTTP":
+            self.__convert_none_to_empty_dict()
+            self.__rename_multi_value_query_to_query_param()
 
         self.__decode_json_body()
 
@@ -20,7 +21,7 @@ class APIDataValidator(DataValidator):
 
     @property
     def httpMethod(self) -> str:
-        return self.data["httpMethod"]
+        return self.data["httpMethod"] if "httpMethod" in self.data else "nonHTTP"
 
     def insert_specifics_to_origin(self, origin: str) -> str:
         if self.httpMethod not in origin:
