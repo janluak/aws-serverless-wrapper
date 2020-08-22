@@ -1,4 +1,4 @@
-from aws_serverless_wrapper.testing import predefined_context, compose_event
+from aws_serverless_wrapper.testing import fake_context, compose_ReST_event
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from pytest import fixture
@@ -32,8 +32,9 @@ def test_200_single_string(response_validation_env, caplog):
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 200, "response_body": "single_allowed_answer"},
     )
 
@@ -42,9 +43,7 @@ def test_200_single_string(response_validation_env, caplog):
         "body": "single_allowed_answer",
         "headers": {"Content-Type": "text/plain"},
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 0
 
@@ -54,8 +53,9 @@ def test_200_false_single_string(response_validation_env, caplog):
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 200, "response_body": "not_allowed_answer"},
     )
 
@@ -64,9 +64,7 @@ def test_200_false_single_string(response_validation_env, caplog):
         "body": "not_allowed_answer",
         "headers": {"Content-Type": "text/plain"},
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "invalid response" in caplog.text
@@ -77,8 +75,9 @@ def test_unspecified_status_code_response(response_validation_env, caplog):
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 418, "response_body": "I'm a teapot"},
     )
 
@@ -87,9 +86,7 @@ def test_unspecified_status_code_response(response_validation_env, caplog):
         "body": "I'm a teapot",
         "headers": {"Content-Type": "text/plain"},
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "no specified response schema available for statusCode 418" in caplog.text
@@ -103,8 +100,9 @@ def test_200_single_string_with_internal_server_error_configured(
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 200, "response_body": "single_allowed_answer"},
     )
 
@@ -113,9 +111,7 @@ def test_200_single_string_with_internal_server_error_configured(
         "body": "single_allowed_answer",
         "headers": {"Content-Type": "text/plain"},
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 0
 
@@ -130,8 +126,9 @@ def test_200_false_single_string_with_internal_server_error(
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 200, "response_body": "not_allowed_answer"},
     )
 
@@ -166,9 +163,7 @@ def test_200_false_single_string_with_internal_server_error(
         "headers": {"Content-Type": "application/json"},
         "statusCode": 200,
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "invalid response" in caplog.text
@@ -184,8 +179,9 @@ def test_unspecified_status_code_with_internal_server_error(
         LambdaHandlerOfFunction,
     )
 
-    event = compose_event(
+    event = compose_ReST_event(
         httpMethod="POST",
+        resource="/response_test",
         body={"response_statusCode": 418, "response_body": "I'm a teapot"},
     )
 
@@ -211,9 +207,7 @@ def test_unspecified_status_code_with_internal_server_error(
         "headers": {"Content-Type": "application/json"},
         "statusCode": 200,
     }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(
-        event, predefined_context
-    )
+    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "no specified response schema available for statusCode 418" in caplog.text
