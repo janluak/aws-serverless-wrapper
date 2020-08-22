@@ -1,4 +1,4 @@
-from aws_serverless_wrapper.testing import fake_context as context
+from aws_serverless_wrapper.testing import fake_context as context, compose_ReST_event
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from freezegun import freeze_time
