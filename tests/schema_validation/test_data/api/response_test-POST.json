@@ -5,11 +5,6 @@
     "type": "object",
     "additionalProperties": true,
     "properties": {
-        "httpMethod": {
-            "description": "the ReST method(s) type allowed for this API",
-            "type": "string",
-            "const": "POST"
-        },
         "headers": {
         },
         "body": {
