@@ -47,7 +47,7 @@ def test_wrong_method(run_from_file_directory):
         LambdaHandlerOfFunction,
     )
 
-    event = {"httpMethod": "WRONG"}
+    event = {"httpMethod": "WRONG", "resource": "/test_request_resource"}
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
@@ -68,7 +68,7 @@ def test_wrong_method_with_error_response(run_from_file_directory):
         LambdaHandlerOfFunction,
     )
 
-    event = {"httpMethod": "WRONG"}
+    event = {"httpMethod": "WRONG", "resource": "/test_request_resource"}
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
     assert response == {
@@ -98,7 +98,7 @@ def test_missing_headers(run_from_file_directory):
         LambdaHandlerOfFunction,
     )
 
-    event = {"httpMethod": "POST"}
+    event = {"httpMethod": "POST", "resource": "/test_request_resource"}
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
@@ -145,6 +145,24 @@ def test_exception_with_raised_status_code(run_from_file_directory):
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
     response = LambdaHandlerOfClass(RaiseExpectedException).wrap_lambda(event, context)
+
+    assert response == {"statusCode": 200}
+
+
+def test_nested_api_resource(run_from_file_directory):
+    environ._load_config_from_file("api_response_wrapper_config.json")
+
+    from aws_serverless_wrapper.wrapper.serverless_handler import (
+        LambdaHandlerOfFunction,
+    )
+
+    event = compose_ReST_event(
+        httpMethod="POST",
+        resource="/test_request_resource/specific_resource/{some_id}",
+        pathParameters={"some_id": "test_id"},
+    )
+
+    response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
     assert response == {"statusCode": 200}
 

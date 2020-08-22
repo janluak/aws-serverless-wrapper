@@ -10,24 +10,28 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
-        APIDataValidator(file=api_schema_file, api_data=api_data)
+        APIDataValidator(
+            file=api_schema_file, api_data=api_data, api_name="test_request_resource"
+        )
 
     def test_basic_with_schema_file_including_http_method(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
             APIDataValidator,
         )
 
-        api_schema_file = (
-            f"{dirname(realpath(__file__))}/test_data/api/api_basic-POST.json"
-        )
+        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/test_request_resource-POST.json"
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
-        APIDataValidator(file=api_schema_file, api_data=api_data)
+        APIDataValidator(
+            file=api_schema_file, api_data=api_data, api_name="test_request_resource"
+        )
 
     def test_basic_with_schema_directory(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
@@ -40,7 +44,11 @@ class TestAPIValidation(TestCase):
         )
 
         def api_basic():
-            APIDataValidator(file=api_schema_directory, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_directory,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
 
         api_basic()
 
@@ -53,10 +61,14 @@ class TestAPIValidation(TestCase):
         try:
             chdir(dirname(realpath(__file__)))
 
-            api_schema_file = "./test_data/api/api_basic.json"
+            api_schema_file = "./test_data/api/test_request_resource.json"
             api_data = load_single("./test_data/api/request_basic.json")
 
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
         finally:
             chdir(actual_cwd)
 
@@ -72,7 +84,11 @@ class TestAPIValidation(TestCase):
             api_data = load_single("./test_data/api/request_basic.json")
 
             def api_basic():
-                APIDataValidator(file=api_schema_directory, api_data=api_data)
+                APIDataValidator(
+                    file=api_schema_directory,
+                    api_data=api_data,
+                    api_name="test_request_resource",
+                )
 
             api_basic()
         finally:
@@ -83,14 +99,20 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
         api_data["httpMethod"] = "WRONG"
 
         with self.assertRaises(EnvironmentError) as TE:
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
 
         self.assertEqual(
             {
@@ -106,14 +128,20 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
         api_data.pop("body")
 
         with self.assertRaises(TypeError) as TE:
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
 
         self.assertEqual(
             {
@@ -129,7 +157,9 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
@@ -141,7 +171,11 @@ class TestAPIValidation(TestCase):
         api_data["body"] = dumps(api_data["body"])
 
         with self.assertRaises(TypeError) as TE:
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
 
         self.assertEqual(
             {
@@ -162,7 +196,9 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
@@ -171,21 +207,29 @@ class TestAPIValidation(TestCase):
 
         api_data["body"] = loads(api_data["body"])
 
-        APIDataValidator(file=api_schema_file, api_data=api_data)
+        APIDataValidator(
+            file=api_schema_file, api_data=api_data, api_name="test_request_resource"
+        )
 
     def test_basic_with_missing_path_parameter(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_basic.json"
         )
         api_data.pop("pathParameters")
 
         with self.assertRaises(TypeError) as TE:
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file,
+                api_data=api_data,
+                api_name="test_request_resource",
+            )
 
         self.assertEqual(
             {
@@ -201,11 +245,15 @@ class TestAPIValidation(TestCase):
             APIDataValidator,
         )
 
-        api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
+        api_schema_file = (
+            f"{dirname(realpath(__file__))}/test_data/api/test_request_resource.json"
+        )
         api_data = load_single(
             f"{dirname(realpath(__file__))}/test_data/api/request_aws_http_event.json"
         )
-        APIDataValidator(file=api_schema_file, api_data=api_data)
+        APIDataValidator(
+            file=api_schema_file, api_data=api_data, api_name="test_request_resource"
+        )
 
     def test_non_rest_event(self):
         from aws_serverless_wrapper.schema_validation.api_validation import (
@@ -214,8 +262,10 @@ class TestAPIValidation(TestCase):
 
         api_schema_file = f"{dirname(realpath(__file__))}/test_data/api/api_basic.json"
         api_data = {"body_key1": "some_string", "body_key2": {"key2.1": 2}}
-        APIDataValidator(file=api_schema_file, api_data=api_data)
+        APIDataValidator(file=api_schema_file, api_data=api_data, api_name="api_basic")
 
         api_data = {"body_key1": "some_string", "body_key2": 2}
         with self.assertRaises(TypeError):
-            APIDataValidator(file=api_schema_file, api_data=api_data)
+            APIDataValidator(
+                file=api_schema_file, api_data=api_data, api_name="api_basic"
+            )

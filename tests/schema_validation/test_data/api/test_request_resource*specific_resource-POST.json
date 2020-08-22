@@ -1,0 +1,34 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "NestedResourceAPI",
+    "description": "API with url: /test_request_resource/specific_resource/{some_id}",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+        "httpMethod": {
+            "description": "the ReST method(s) type allowed for this API",
+            "type": "string",
+            "enum": [
+                "POST"
+            ]
+        },
+        "pathParameters": {
+            "description": "path parameter in url (required variables {url.com/{path_level1}/{path_level2}} -> predefined in request, string only)",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "some_id": {
+                    "description": "key name as specified in endpoint config, first level",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "some_id"
+            ]
+        }
+    },
+    "required": [
+        "httpMethod",
+        "pathParameters"
+    ]
+}

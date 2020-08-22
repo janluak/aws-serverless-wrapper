@@ -20,7 +20,7 @@ def test_passing_string_response(response_validation_env, caplog):
     )
 
     response_schema_file = (
-        f"{dirname(realpath(__file__))}/test_data/response/response_test.json"
+        f"{dirname(realpath(__file__))}/test_data/response/test_response_resource.json"
     )
     response_data = {
         "statusCode": 200,
@@ -28,7 +28,10 @@ def test_passing_string_response(response_validation_env, caplog):
         "headers": {"Content-Type": "text/plain"},
     }
     ResponseDataValidator(
-        file=response_schema_file, response_data=response_data, httpMethod="POST"
+        file=response_schema_file,
+        response_data=response_data,
+        httpMethod="POST",
+        api_name="test_response_resource",
     )
     assert len(caplog.messages) == 0
 
@@ -39,7 +42,7 @@ def test_passing_object_response(response_validation_env, caplog):
     )
 
     response_schema_file = (
-        f"{dirname(realpath(__file__))}/test_data/response/response_test.json"
+        f"{dirname(realpath(__file__))}/test_data/response/test_response_resource.json"
     )
     response_data = {
         "statusCode": 200,
@@ -47,7 +50,10 @@ def test_passing_object_response(response_validation_env, caplog):
         "headers": {"Content-Type": "text/plain"},
     }
     ResponseDataValidator(
-        file=response_schema_file, response_data=response_data, httpMethod="POST"
+        file=response_schema_file,
+        response_data=response_data,
+        httpMethod="POST",
+        api_name="test_response_resource",
     )
     assert len(caplog.messages) == 0
 
@@ -58,7 +64,7 @@ def test_wrong_string_response(response_validation_env, caplog):
     )
 
     response_schema_file = (
-        f"{dirname(realpath(__file__))}/test_data/response/response_test.json"
+        f"{dirname(realpath(__file__))}/test_data/response/test_response_resource.json"
     )
     response_data = {
         "statusCode": 200,
@@ -66,7 +72,10 @@ def test_wrong_string_response(response_validation_env, caplog):
         "headers": {"Content-Type": "text/plain"},
     }
     ResponseDataValidator(
-        file=response_schema_file, response_data=response_data, httpMethod="POST"
+        file=response_schema_file,
+        response_data=response_data,
+        httpMethod="POST",
+        api_name="test_response_resource",
     )
 
     assert len(caplog.messages) == 1
@@ -79,7 +88,7 @@ def test_unspecified_status_code_response(response_validation_env, caplog):
     )
 
     response_schema_file = (
-        f"{dirname(realpath(__file__))}/test_data/response/response_test.json"
+        f"{dirname(realpath(__file__))}/test_data/response/test_response_resource.json"
     )
     response_data = {
         "statusCode": 418,
@@ -87,7 +96,10 @@ def test_unspecified_status_code_response(response_validation_env, caplog):
         "headers": {"Content-Type": "text/plain"},
     }
     ResponseDataValidator(
-        file=response_schema_file, response_data=response_data, httpMethod="POST"
+        file=response_schema_file,
+        response_data=response_data,
+        httpMethod="POST",
+        api_name="test_response_resource",
     )
 
     assert len(caplog.messages) == 1

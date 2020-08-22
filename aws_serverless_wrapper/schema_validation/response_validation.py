@@ -12,11 +12,13 @@ class ResponseDataValidator(DataValidator):
         self,
         response_data: dict,
         httpMethod: str,
+        api_name: str,
         file: str = None,
         url: str = None,
         raw: dict = None,
     ):
         self.__httpMethod = httpMethod
+        self.__api_name = api_name
         try:
             super().__init__(response_data, file, url, raw)
             self.verify()
@@ -36,6 +38,10 @@ class ResponseDataValidator(DataValidator):
     @property
     def httpMethod(self) -> str:
         return self.__httpMethod
+
+    @property
+    def api_name(self) -> str:
+        return self.__api_name
 
     @property
     def statusCode(self) -> str:

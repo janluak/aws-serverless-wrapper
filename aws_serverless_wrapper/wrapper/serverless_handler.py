@@ -24,14 +24,14 @@ class __LambdaHandler(ABC):
         self.business_handler = business_handler
         self.request_data = None
         self.context = None
-        self.api_name = str()
 
     @abstractmethod
     def run(self):
         pass
 
+    @property
     @abstractmethod
-    def _get_api_name(self) -> str:
+    def api_name(self) -> str:
         return str()
 
     def input_verification(self, event) -> (None, dict):
@@ -41,12 +41,9 @@ class __LambdaHandler(ABC):
             origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
             origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
 
-            if "/" == origin_value[-1]:
-                origin_value += self._get_api_name()
-
             try:
                 self.request_data = APIDataValidator(
-                    event, **{origin_type: origin_value},
+                    event, self.api_name, **{origin_type: origin_value},
                 ).data
             except (OSError, TypeError, ValidationError) as e:
                 from .._helper import log_api_validation_error
@@ -73,12 +70,10 @@ class __LambdaHandler(ABC):
             origin_type = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_ORIGIN"]
             origin_value = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_DIRECTORY"]
 
-            if "/" == origin_value[-1]:
-                origin_value += self._get_api_name()
-
             ResponseDataValidator(
                 response,
                 httpMethod=self.request_data["httpMethod"],
+                api_name=self.api_name,
                 **{origin_type: origin_value},
             )
 
@@ -138,23 +133,28 @@ class __LambdaHandler(ABC):
 
 
 class LambdaHandlerOfClass(__LambdaHandler):
-    def _get_api_name(self) -> str:
-        if self.business_handler.api_name and isinstance(
+    @property
+    def api_name(self) -> str:
+        if "resource" in self.request_data:
+            return self.request_data["resource"]
+        elif self.business_handler.api_name and isinstance(
             self.business_handler.api_name, str
         ):
-            self.api_name = self.business_handler.api_name
+            return self.business_handler.api_name
         else:
-            self.api_name = self.business_handler.__name__
-        return self.api_name
+            return self.business_handler.__name__
 
     def run(self):
         return self.business_handler(self.request_data, self.context).main()
 
 
 class LambdaHandlerOfFunction(__LambdaHandler):
-    def _get_api_name(self) -> str:
-        self.api_name = self.business_handler.__name__
-        return self.api_name
+    @property
+    def api_name(self) -> str:
+        if "resource" in self.request_data:
+            return self.request_data["resource"]
+        else:
+            return self.business_handler.__name__
 
     def run(self):
         return self.business_handler(self.request_data)

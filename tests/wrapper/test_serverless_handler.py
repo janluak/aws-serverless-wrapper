@@ -108,7 +108,7 @@ def test_different_named_class_run_through(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
     environ["API_INPUT_VERIFICATION"][
         "SCHEMA_DIRECTORY"
-    ] = "../schema_validation/test_data/api/api_basic.json"
+    ] = "../schema_validation/test_data/api/test_request_resource.json"
     from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
@@ -126,7 +126,7 @@ def test_different_named_class_run_through_schema_with_http_method(
     environ._load_config_from_file("api_response_wrapper_config.json")
     environ["API_INPUT_VERIFICATION"][
         "SCHEMA_DIRECTORY"
-    ] = "../schema_validation/test_data/api/api_basic-POST.json"
+    ] = "../schema_validation/test_data/api/test_request_resource-POST.json"
     from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")

@@ -15,5 +15,6 @@
   "queryParameters": {
     "key1": "value1",
     "key2": "value2"
-  }
+  },
+  "resource": "/test_request_resource/{path_level1}/{path_level2}"
 }

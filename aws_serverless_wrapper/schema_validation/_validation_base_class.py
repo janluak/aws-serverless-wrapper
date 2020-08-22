@@ -5,7 +5,7 @@ from jsonschema.exceptions import ValidationError
 
 class DataValidator(ABC):
     def __init__(
-        self, data_to_verify: dict, file: str = None, url: str = None, raw: dict = None
+        self, data_to_verify: dict, file: str = None, url: str = None, raw: dict = None,
     ):
 
         self.__data = data_to_verify
@@ -37,6 +37,11 @@ class DataValidator(ABC):
     def httpMethod(self) -> str:
         return str()
 
+    @property
+    @abstractmethod
+    def api_name(self) -> str:
+        return str()
+
     @staticmethod
     @abstractmethod
     def handle_exception(validation_error):
@@ -53,13 +58,12 @@ class DataValidator(ABC):
     def insert_specifics_to_origin(self, origin: str) -> str:
         return str()
 
-    @staticmethod
-    def __insert_api_name_to_origin(origin):
-        from inspect import stack
+    def __insert_api_name_to_origin(self, origin):
+        resource_name = "*".join(
+            [i for i in self.api_name.split("/") if "{" not in i and i]
+        )
 
-        parent_function = stack()[4][3]
-
-        origin += parent_function
+        origin += resource_name
 
         return origin
 

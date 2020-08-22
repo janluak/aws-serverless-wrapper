@@ -34,7 +34,7 @@ def test_200_single_string(response_validation_env, caplog):
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 200, "response_body": "single_allowed_answer"},
     )
 
@@ -55,7 +55,7 @@ def test_200_false_single_string(response_validation_env, caplog):
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 200, "response_body": "not_allowed_answer"},
     )
 
@@ -77,7 +77,7 @@ def test_unspecified_status_code_response(response_validation_env, caplog):
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 418, "response_body": "I'm a teapot"},
     )
 
@@ -102,7 +102,7 @@ def test_200_single_string_with_internal_server_error_configured(
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 200, "response_body": "single_allowed_answer"},
     )
 
@@ -128,7 +128,7 @@ def test_200_false_single_string_with_internal_server_error(
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 200, "response_body": "not_allowed_answer"},
     )
 
@@ -181,7 +181,7 @@ def test_unspecified_status_code_with_internal_server_error(
 
     event = compose_ReST_event(
         httpMethod="POST",
-        resource="/response_test",
+        resource="/test_response_resource",
         body={"response_statusCode": 418, "response_body": "I'm a teapot"},
     )
 

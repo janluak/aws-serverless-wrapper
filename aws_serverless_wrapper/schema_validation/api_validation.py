@@ -7,8 +7,14 @@ __all__ = ["APIDataValidator"]
 
 class APIDataValidator(DataValidator):
     def __init__(
-        self, api_data: dict, file: str = None, url: str = None, raw: dict = None
+        self,
+        api_data: dict,
+        api_name: str,
+        file: str = None,
+        url: str = None,
+        raw: dict = None,
     ):
+        self.__api_name = api_name
         super().__init__(api_data, file, url, raw)
 
         if self.httpMethod != "nonHTTP":
@@ -22,6 +28,10 @@ class APIDataValidator(DataValidator):
     @property
     def httpMethod(self) -> str:
         return self.data["httpMethod"] if "httpMethod" in self.data else "nonHTTP"
+
+    @property
+    def api_name(self) -> str:
+        return self.__api_name
 
     def insert_specifics_to_origin(self, origin: str) -> str:
         if self.httpMethod not in origin:
