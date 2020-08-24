@@ -190,13 +190,13 @@ class Table(NoSQLTable):
 
     def __general_update(
         self,
-        primary_dict,
         *,
         require_attributes_already_present=False,
         require_attributes_to_be_missing=False,
         create_item_if_non_existent,
         list_operation=False,
-        **new_data,
+        new_data,
+        **primary_dict,
     ):
         self._primary_key_checker(primary_dict)
 
@@ -288,32 +288,32 @@ class Table(NoSQLTable):
     # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html
     def add_new_attribute(
         self,
-        primary_dict,
         new_data: dict,
         update_if_existent=False,
         create_item_if_non_existent=False,
+        **primary_dict,
     ):
         self.__general_update(
-            primary_dict,
+            **primary_dict,
+            new_data=new_data,
             require_attributes_to_be_missing=True if not update_if_existent else False,
             create_item_if_non_existent=create_item_if_non_existent,
-            **new_data,
         )
 
     def update_attribute(
         self,
-        primary_dict,
+        new_data,
         set_new_attribute_if_not_existent=False,
         create_item_if_non_existent=False,
-        **new_data,
+        **primary_dict,
     ):
         self.__general_update(
-            primary_dict,
+            **primary_dict,
+            new_data=new_data,
             require_attributes_already_present=True
             if not set_new_attribute_if_not_existent
             else False,
             create_item_if_non_existent=create_item_if_non_existent,
-            **new_data,
         )
 
     def update_list_item(self, primary_dict, item_no, **new_data):
@@ -321,22 +321,22 @@ class Table(NoSQLTable):
 
     def update_append_list(
         self,
-        primary_dict,
+        new_data,
         set_new_attribute_if_not_existent=False,
         create_item_if_non_existent=False,
-        **new_data,
+        **primary_dict,
     ):
         self.__general_update(
-            primary_dict,
+            **primary_dict,
+            new_data=new_data,
             require_attributes_already_present=False
             if set_new_attribute_if_not_existent
             else True,
             create_item_if_non_existent=create_item_if_non_existent,
             list_operation=True,
-            **new_data,
         )
 
-    def update_increment(self, primary, path_of_to_increment):
+    def update_increment(self, path_of_to_increment, **primary_dict):
         #  response = table.update_item(
         #     Key={
         #         'year': year,
@@ -369,11 +369,13 @@ class Table(NoSQLTable):
             else:
                 raise CE
 
-    def remove_attribute(self, primary_dict, path_of_attribute):
+    def remove_attribute(self, path_of_attribute, **primary_dict):
         # expression "REMOVE path.to.attribute, path.to.attribute2"
         raise NotImplemented
 
-    def remove_entry_in_list(self, primary_dict, path_to_list, position_to_delete: int):
+    def remove_entry_in_list(
+        self, path_to_list, position_to_delete: int, **primary_dict
+    ):
         # expression "REMOVE path.to.list[position_to_delete]"
         raise NotImplemented
 

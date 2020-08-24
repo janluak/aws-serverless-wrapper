@@ -739,7 +739,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t = Table(self.table_name)
         with self.assertRaises(FileNotFoundError) as FNF:
-            t.update_attribute(test_item_primary, **updated_attribute)
+            t.update_attribute(updated_attribute, **test_item_primary)
 
         self.assertEqual(
             {
@@ -761,7 +761,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t = Table(self.table_name)
         with self.assertRaises(TypeError) as TE:
             t.update_attribute(
-                test_item_primary, create_item_if_non_existent=True, **updated_attribute
+                updated_attribute, create_item_if_non_existent=True, **test_item_primary
             )
 
         self.assertEqual(
@@ -785,7 +785,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t = Table(self.table_name)
         with self.assertRaises(TypeError) as TE:
             t.update_attribute(
-                test_item_primary, create_item_if_non_existent=True, **updated_attribute
+                updated_attribute, create_item_if_non_existent=True, **test_item_primary
             )
 
         self.assertEqual(
@@ -805,7 +805,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t.put(test_item)
 
-        t.update_attribute(test_item_primary, **updated_attribute)
+        t.update_attribute(updated_attribute, **test_item_primary)
 
         self.assertEqual(
             updated_attribute["some_float"], t.get(**test_item_primary)["some_float"],
@@ -828,7 +828,7 @@ class TestDynamoDB(TestDynamoDBBase):
         from aws_serverless_wrapper.database.noSQL import AttributeNotExistsException
 
         with self.assertRaises(AttributeNotExistsException):
-            t.update_attribute(test_item_primary, **updated_attribute)
+            t.update_attribute(updated_attribute, **test_item_primary)
 
     def test_update_with_attribute_of_false_type(self):
         updated_attribute = {"some_string": False}
@@ -839,7 +839,7 @@ class TestDynamoDB(TestDynamoDBBase):
         t.put(test_item)
 
         with self.assertRaises(TypeError) as TE:
-            t.update_attribute(test_item_primary, **updated_attribute)
+            t.update_attribute(updated_attribute, **test_item_primary)
 
         t.delete(**test_item_primary)
 
@@ -867,9 +867,9 @@ class TestDynamoDB(TestDynamoDBBase):
         t.put(test_item)
 
         t.update_attribute(
-            test_item_primary,
-            **updated_attribute,
+            updated_attribute,
             set_new_attribute_if_not_existent=True,
+            **test_item_primary,
         )
 
         self.assertEqual(
@@ -891,7 +891,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t.put(test_item)
 
-        t.add_new_attribute(test_item_primary, added_attribute)
+        t.add_new_attribute(added_attribute, **test_item_primary)
 
         self.assertEqual(
             {"sub0": [{"sub_sub_key": "abc"}]},
@@ -909,7 +909,7 @@ class TestDynamoDB(TestDynamoDBBase):
         from aws_serverless_wrapper.database.noSQL import AttributeExistsException
 
         with self.assertRaises(AttributeExistsException):
-            t.add_new_attribute(test_item_primary, added_attribute)
+            t.add_new_attribute(added_attribute, **test_item_primary)
 
     def test_add_attribute_on_existing_attribute_update(self):
         added_attribute = {"some_dict": {"key1": "abc"}}
@@ -919,7 +919,9 @@ class TestDynamoDB(TestDynamoDBBase):
 
         t.put(test_item)
 
-        t.add_new_attribute(test_item_primary, added_attribute, update_if_existent=True)
+        t.add_new_attribute(
+            added_attribute, update_if_existent=True, **test_item_primary
+        )
 
         self.assertEqual(
             "abc", t.get(**test_item_primary)["some_dict"]["key1"],
@@ -933,7 +935,7 @@ class TestDynamoDB(TestDynamoDBBase):
 
         with self.assertRaises(TypeError) as TE:
             t.add_new_attribute(
-                test_item_primary, added_attribute, create_item_if_non_existent=True
+                added_attribute, **test_item_primary, create_item_if_non_existent=True
             )
 
         self.assertEqual(
@@ -954,8 +956,8 @@ class TestDynamoDB(TestDynamoDBBase):
         t = Table(self.table_name)
         t.put(test_item)
         t.update_append_list(
-            test_item_primary,
-            **{"some_nested_dict": {"KEY1": {"subKEY3": ["second_string"]}}},
+            {"some_nested_dict": {"KEY1": {"subKEY3": ["second_string"]}}},
+            **test_item_primary,
         )
 
         result = t.get(**test_item_primary)
@@ -980,12 +982,12 @@ class TestDynamoDB(TestDynamoDBBase):
         from aws_serverless_wrapper.database.noSQL import AttributeNotExistsException
 
         with self.assertRaises(AttributeNotExistsException):
-            t.update_append_list(test_item_primary, **updated_attribute)
+            t.update_append_list(updated_attribute, **test_item_primary)
 
         t.update_append_list(
-            test_item_primary,
+            updated_attribute,
             set_new_attribute_if_not_existent=True,
-            **updated_attribute,
+            **test_item_primary,
         )
 
         self.assertEqual(

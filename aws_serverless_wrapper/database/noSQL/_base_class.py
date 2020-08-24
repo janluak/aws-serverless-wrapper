@@ -210,51 +210,53 @@ class NoSQLTable(ABC):
     @abstractmethod
     def add_new_attribute(
         self,
-        primary_dict,
         new_data: dict,
         update_if_existent=False,
         create_item_if_non_existent=False,
+        **primary_dict,
     ):
         pass
 
     @abstractmethod
     def update_attribute(
         self,
-        primary_dict,
+        new_data,
         set_new_attribute_if_not_existent=False,
         create_item_if_non_existent=False,
-        **new_data,
+        **primary_dict,
     ):
         pass
 
     @abstractmethod
-    def update_list_item(self, primary_dict, item_no, **new_data):
+    def update_list_item(self, primary_dict, item_no, new_data):
         pass
 
     @abstractmethod
     def update_append_list(
         self,
-        primary_dict,
+        new_data,
         set_new_attribute_if_not_existent=False,
         create_item_if_non_existent=False,
-        **new_data,
+        **primary_dict,
     ):
         pass
 
     @abstractmethod
-    def update_increment(self, primary, path_of_to_increment):
+    def update_increment(self, path_of_to_increment: dict, **primary_dict):
         pass
 
     @abstractmethod
-    def put(self, item, overwrite=False):
+    def put(self, item: dict, overwrite=False):
         pass
 
     @abstractmethod
-    def remove_attribute(self, primary_dict, path_of_attribute):
+    def remove_attribute(self, path_of_attribute: dict, **primary_dict):
         pass
 
     @abstractmethod
-    def remove_entry_in_list(self, primary_dict, path_to_list, position_to_delete: int):
+    def remove_entry_in_list(
+        self, path_to_list: dict, position_to_delete: int, **primary_dict
+    ):
         pass
 
     @abstractmethod
