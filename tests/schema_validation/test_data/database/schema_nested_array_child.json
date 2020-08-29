@@ -18,5 +18,25 @@
         }
       }
     }
+  },
+  "definitions": {
+    "third_array_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "KEY1": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "subKEY1": {
+              "type": "string"
+            },
+            "subKEY2": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
   }
 }

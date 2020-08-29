@@ -1,8 +1,9 @@
 from .json_to_python_type import json_to_python_type_switch
 from json import load as json_load
 from jsonschema.validators import Draft7Validator, RefResolver
+from jsonschema.exceptions import ValidationError
 from os.path import dirname, abspath
-from .._helper import delete_keys_in_nested_dict
+from .._helper import delete_keys_in_nested_dict, find_path_values_in_dict
 from copy import deepcopy
 
 _current_validator = Draft7Validator
@@ -60,6 +61,65 @@ class SchemaValidator:
             self.validator.validate(data)
         else:
             self.validator_without_required_check.validate(data)
+
+    def get_sub_schema(self, path_to_sub_schema: list, current_sub_schema: dict = None):
+        if not current_sub_schema:
+            current_sub_schema = self.schema
+        next_element = path_to_sub_schema.__iter__()
+        try:
+            if "properties" in current_sub_schema:
+                n = next(next_element)
+                return self.get_sub_schema(
+                    path_to_sub_schema[1:], current_sub_schema["properties"][n],
+                )
+            elif "patternProperties" in current_sub_schema:
+                from re import compile
+
+                n = next(next_element)
+                for key in current_sub_schema["patternProperties"]:
+                    if compile(key).match(n):
+                        return self.get_sub_schema(
+                            path_to_sub_schema[1:],
+                            current_sub_schema["patternProperties"][key],
+                        )
+                raise ValidationError(
+                    f"none of the patternProperties matched: {list(current_sub_schema['patternProperties'].keys())}",
+                )
+            elif "items" in current_sub_schema and next(next_element):
+                return self.get_sub_schema(
+                    path_to_sub_schema, current_sub_schema["items"],
+                )
+            elif "$ref" in current_sub_schema:
+                current_sub_schema = self.validator.resolver.resolve(
+                    current_sub_schema["$ref"]
+                )
+                return self.get_sub_schema(path_to_sub_schema, current_sub_schema[1])
+
+            elif next(next_element) in current_sub_schema:
+                n = path_to_sub_schema[0]
+                return self.get_sub_schema(
+                    path_to_sub_schema[1:], current_sub_schema[n]
+                )
+
+            return current_sub_schema
+        except StopIteration:
+            return current_sub_schema
+
+    def validate_sub_part(self, new_data):
+        paths_in_new_data, new_values = find_path_values_in_dict(new_data)
+
+        for path_no in range(len(paths_in_new_data)):
+            path_to_new_attribute = paths_in_new_data[path_no]
+
+            relevant_sub_schema = self.get_sub_schema(path_to_new_attribute)
+            try:
+                _current_validator(
+                    relevant_sub_schema, resolver=self.validator.resolver,
+                ).validate(new_values[path_no])
+            except ValidationError as VE:
+                for path in path_to_new_attribute[::-1]:
+                    VE.__dict__["path"].appendleft(path)
+                raise VE
 
     def __file_resolver(self):
         absolute_directory = dirname(abspath(self.__file))

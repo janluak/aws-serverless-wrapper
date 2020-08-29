@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from inspect import stack
 from jsonschema.exceptions import ValidationError
-from copy import deepcopy
-from ..._helper import environ, find_path_values_in_dict
+from ..._helper import environ
 from ...schema_validation import SchemaValidator
 
 
@@ -121,63 +120,10 @@ class NoSQLTable(ABC):
     def custom_exception(self):
         return self.__custom_exception_raiser
 
-    def _get_sub_schema(self, current_sub_schema: dict, path_to_sub_schema: list):
-        next_element = path_to_sub_schema.__iter__()
-        try:
-            if "properties" in current_sub_schema:
-                return self._get_sub_schema(
-                    current_sub_schema["properties"][next(next_element)],
-                    path_to_sub_schema[1:],
-                )
-            elif "patternProperties" in current_sub_schema:
-                from re import compile
-
-                n = next(next_element)
-                for key in current_sub_schema["patternProperties"]:
-                    if compile(key).match(n):
-                        return self._get_sub_schema(
-                            current_sub_schema["patternProperties"][key],
-                            path_to_sub_schema[1:],
-                        )
-                raise ValidationError(
-                    f"none of the patternProperties matched: {list(current_sub_schema['patternProperties'].keys())}",
-                )
-
-            elif "$ref" in current_sub_schema:
-                current_sub_schema = self.__schema_validator.validator.resolver.resolve(
-                    current_sub_schema["$ref"]
-                )
-                return self._get_sub_schema(current_sub_schema[1], path_to_sub_schema)
-
-            return current_sub_schema
-        except StopIteration:
-            return current_sub_schema
-
-    def _check_sub_attribute_type(self, new_data):
-        from ...schema_validation.schema_validator import _current_validator
-
-        paths_in_new_data, new_values = find_path_values_in_dict(new_data)
-
-        for path_no in range(len(paths_in_new_data)):
-            path_to_new_attribute = paths_in_new_data[path_no]
-
-            relevant_sub_schema = self._get_sub_schema(
-                self.schema, path_to_new_attribute
-            )
-            try:
-                _current_validator(
-                    relevant_sub_schema,
-                    resolver=self.__schema_validator.validator.resolver,
-                ).validate(new_values[path_no])
-            except ValidationError as VE:
-                for path in path_to_new_attribute[::-1]:
-                    VE.__dict__["path"].appendleft(path)
-                raise VE
-
     def _validate_input(self, given_input):
         if "update" in stack()[1].function:
             try:
-                self._check_sub_attribute_type(given_input)
+                self.__schema_validator.validate_sub_part(given_input)
             except ValidationError as e:
                 self.custom_exception.wrong_data_type(e)
 

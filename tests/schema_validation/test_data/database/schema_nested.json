@@ -46,16 +46,52 @@
             },
             "subKEY2": {
               "type": "number"
+            },
+            "subKEY3": {
+              "$ref": "schema_nested_definitions.json#/definitions/third_nested_dict_key"
+            },
+            "subKEY4": {
+              "patternProperties": {
+                "^[a-z]+$": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "schema_nested_definitions.json#/definitions/fourth_nested_dict_key_array"
+                  }
+                },
+                "^[a-z0-9]+$": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "schema_nested_definitions.json#/definitions/fourth_nested_dict_key_array"
+                  }
+                }
+              }
             }
           }
         }
+      }
+    },
+    "some_array": {
+      "description": "contains a list",
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "$ref": "schema_nested_array_child.json#/definitions/third_array_item"
+          }
+        ]
       }
     },
     "nested_array": {
       "description": "contains a list",
       "type": "array",
       "items": {
-        "$ref": "schema_nested_array_child.json"
+        "$ref": "schema_nested_array_child.json#/properties"
       }
     }
   },

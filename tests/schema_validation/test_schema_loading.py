@@ -27,15 +27,8 @@ class TestSchemaLoadingFromFile(TestCase):
         base_schema_file = (
             f"{dirname(realpath(__file__))}/test_data/database/schema_nested.json"
         )
-        child_schema_file = f"{dirname(realpath(__file__))}/test_data/database/schema_nested_array_child.json"
 
         expected_schema = load_single(base_schema_file)
-        child_schema = load_single(child_schema_file)
-
-        for key in ["$id", "$schema", "title"]:
-            child_schema.pop(key)
-
-        expected_schema["properties"]["some_nested_dict"] = child_schema
 
         validator = SchemaValidator(file=base_schema_file)
         loaded_schema = validator.schema
