@@ -76,7 +76,6 @@ class CustomExceptionRaiser:
         raise TypeError(response)
 
     def item_already_existing(self, item):
-        item = deepcopy(item)
         raise FileExistsError(
             {
                 "statusCode": 409,
