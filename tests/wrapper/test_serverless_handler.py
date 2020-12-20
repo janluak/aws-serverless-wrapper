@@ -1,10 +1,10 @@
-from aws_serverless_wrapper.testing import fake_context as context
+from aws_environ_helper.testing import fake_context as context
 from os.path import dirname, realpath
 from os import chdir, getcwd
-from aws_serverless_wrapper._helper.environ_variables import environ
+from aws_environ_helper.environ_variables import environ
 from aws_serverless_wrapper.wrapper.base_class import ServerlessBaseClass
 from pytest import fixture
-from datesy.file_IO.json_file import load_single
+from fil_io.json import load_single
 
 
 @fixture

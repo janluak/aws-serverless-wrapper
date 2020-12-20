@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from .base_class import ServerlessBaseClass
-from .._helper import environ
+from aws_environ_helper import environ
 from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
@@ -36,7 +36,7 @@ class __LambdaHandler(ABC):
 
     def input_verification(self, event) -> (None, dict):
         if environ["API_INPUT_VERIFICATION"]:
-            from ..schema_validation import APIDataValidator
+            from aws_schema import APIDataValidator
 
             origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
             origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
@@ -46,7 +46,7 @@ class __LambdaHandler(ABC):
                     event, self.api_name, **{origin_type: origin_value},
                 ).data
             except (OSError, TypeError, ValidationError) as e:
-                from .._helper import log_api_validation_error
+                from aws_environ_helper import log_api_validation_error
 
                 error_log_item = log_api_validation_error(e, event, self.context)
 
@@ -65,7 +65,7 @@ class __LambdaHandler(ABC):
 
     def output_verification(self, response):
         if environ["API_RESPONSE_VERIFICATION"]:
-            from ..schema_validation import ResponseDataValidator
+            from aws_schema import ResponseDataValidator
 
             origin_type = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_ORIGIN"]
             origin_value = environ["API_RESPONSE_VERIFICATION"]["SCHEMA_DIRECTORY"]
@@ -81,7 +81,7 @@ class __LambdaHandler(ABC):
         if "abstract class" in exc.args[0]:
             raise exc
 
-        from .._helper import log_exception
+        from aws_environ_helper import log_exception
 
         error_log_item = log_exception(exc, self.request_data, self.context)
 

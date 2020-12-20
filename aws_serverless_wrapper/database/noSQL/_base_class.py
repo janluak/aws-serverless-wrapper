@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from inspect import stack
 from jsonschema.exceptions import ValidationError
-from ..._helper import environ
-from ...schema_validation import SchemaValidator
+from aws_environ_helper import environ
+from aws_schema import SchemaValidator
 
 
 class AttributeExistsException(AttributeError):

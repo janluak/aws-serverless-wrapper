@@ -1,6 +1,6 @@
-from aws_serverless_wrapper._helper.environ_variables import environ
-from datesy.file_IO.json_file import load_single
-from .._helper import context
+from aws_environ_helper.environ_variables import environ
+from fil_io.json import load_single
+from aws_environ_helper.testing import fake_context as context
 from pytest import fixture, raises, mark
 from os.path import dirname, realpath
 from os import chdir, getcwd

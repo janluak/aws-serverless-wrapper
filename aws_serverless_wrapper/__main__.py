@@ -1,5 +1,5 @@
 def check_wrapper_config(wrapper_config_file):
-    from .schema_validation import SchemaValidator
+    from aws_schema import SchemaValidator
     from os.path import dirname, realpath
     from json import load
 
