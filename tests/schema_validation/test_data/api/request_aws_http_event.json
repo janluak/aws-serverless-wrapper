@@ -1,6 +1,6 @@
 {
-  "resource": ",/test_request_resource/{path_level1}/{path_level2}",
-  "path": "/url_path/path_value1/path_second_level1",
+  "resource": "/test_request_resource/{path_level1}/{path_level2}",
+  "path": "/base_path/test_request_resource/path_level1/path_second_level1",
   "httpMethod": "POST",
   "headers": {
     "Accept": "*/*",

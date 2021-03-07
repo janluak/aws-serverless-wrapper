@@ -98,7 +98,7 @@ def test_missing_headers(run_from_file_directory):
         LambdaHandlerOfFunction,
     )
 
-    event = {"httpMethod": "POST", "resource": "/test_request_resource"}
+    event = {"httpMethod": "POST", "resource": "/test_request_resource/{path_level1}/{path_level2}"}
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
