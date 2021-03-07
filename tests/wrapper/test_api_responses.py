@@ -6,6 +6,7 @@ from pytest import fixture
 from fil_io.json import load_single
 from aws_environ_helper import environ
 from aws_serverless_wrapper import ServerlessBaseClass
+from json import loads
 
 
 def api_basic(event):
@@ -71,6 +72,7 @@ def test_wrong_method_with_error_response(run_from_file_directory):
     event = {"httpMethod": "WRONG", "resource": "/test_request_resource"}
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
+    response["body"] = loads(response["body"])
     assert response == {
         "statusCode": 501,
         "body": {
@@ -117,7 +119,7 @@ def test_wrong_body(run_from_file_directory):
     )
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
-    from json import loads, dumps
+    from json import dumps
 
     event["body"] = loads(event["body"])
     event["body"]["body_key1"] = 123
@@ -179,6 +181,7 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
     response = LambdaHandlerOfClass(RaiseExpectedException).wrap_lambda(event, context)
+    response["body"] = loads(response["body"])
 
     assert response == {
         "statusCode": 200,

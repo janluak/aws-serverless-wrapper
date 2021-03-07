@@ -5,6 +5,7 @@ from aws_environ_helper.environ_variables import environ
 from aws_serverless_wrapper.wrapper.base_class import ServerlessBaseClass
 from pytest import fixture
 from fil_io.json import load_single
+from json import loads
 
 
 @fixture
@@ -64,6 +65,7 @@ def test_function_occurring_exception_with_error_log(run_from_file_directory):
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
     response = LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
+    response["body"] = loads(response["body"])
 
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}
@@ -186,6 +188,7 @@ def test_class_occurring_exception_with_error_log(run_from_file_directory):
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
     response = LambdaHandlerOfClass(api_basic).wrap_lambda(event, context)
+    response["body"] = loads(response["body"])
 
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}

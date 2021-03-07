@@ -4,6 +4,7 @@ from aws_environ_helper import environ
 from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
+from ._body_parsing import parse_body
 
 
 __all__ = ["LambdaHandlerOfClass", "LambdaHandlerOfFunction"]
@@ -34,34 +35,36 @@ class __LambdaHandler(ABC):
     def api_name(self) -> str:
         return str()
 
-    def input_verification(self, event) -> (None, dict):
-        if environ["API_INPUT_VERIFICATION"]:
-            from aws_schema import APIDataValidator
+    def input_verification(self) -> (None, dict):
+        try:
+            self.request_data = parse_body(self.request_data)
 
-            origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
-            origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
+            if environ["API_INPUT_VERIFICATION"]:
+                from aws_schema import APIDataValidator
 
-            try:
+                origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
+                origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
+
                 self.request_data = APIDataValidator(
-                    event, self.api_name, **{origin_type: origin_value},
+                    self.request_data, self.api_name, **{origin_type: origin_value},
                 ).data
-            except (OSError, TypeError, ValidationError) as e:
-                from aws_environ_helper import log_api_validation_error
+        except (OSError, TypeError, ValidationError) as e:
+            from aws_environ_helper import log_api_validation_error
 
-                error_log_item = log_api_validation_error(e, event, self.context)
+            error_log_item = log_api_validation_error(e, self.request_data, self.context)
 
-                if not error_log_item:
-                    return e.args[0]
+            if not error_log_item:
+                return e.args[0]
 
-                else:
-                    return {
-                        "statusCode": e.args[0]["statusCode"],
-                        "body": {
-                            "basic": e.args[0]["body"],
-                            "error_log_item": error_log_item,
-                        },
-                        "headers": {"Content-Type": "application/json"},
-                    }
+            else:
+                return {
+                    "statusCode": e.args[0]["statusCode"],
+                    "body": {
+                        "basic": e.args[0]["body"],
+                        "error_log_item": error_log_item,
+                    },
+                    "headers": {"Content-Type": "application/json"},
+                }
 
     def output_verification(self, response):
         if environ["API_RESPONSE_VERIFICATION"]:
@@ -117,8 +120,8 @@ class __LambdaHandler(ABC):
 
         self.request_data = event
         self.context = context
-        if bad_input_response := self.input_verification(self.request_data):
-            return bad_input_response
+        if bad_input_response := self.input_verification():
+            return parse_body(bad_input_response)
 
         try:
 
@@ -129,7 +132,7 @@ class __LambdaHandler(ABC):
         except Exception as e:
             response = self._log_error(e)
 
-        return response
+        return parse_body(response)
 
 
 class LambdaHandlerOfClass(__LambdaHandler):

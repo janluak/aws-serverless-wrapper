@@ -4,6 +4,7 @@ from os import chdir, getcwd
 from pytest import fixture
 from freezegun import freeze_time
 from aws_environ_helper import environ
+from json import loads
 
 
 def response_test(event):
@@ -164,6 +165,7 @@ def test_200_false_single_string_with_internal_server_error(
         "statusCode": 200,
     }
     response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
+    response["body"] = loads(response["body"])
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "invalid response" in caplog.text
@@ -208,6 +210,7 @@ def test_unspecified_status_code_with_internal_server_error(
         "statusCode": 200,
     }
     response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
+    response["body"] = loads(response["body"])
     assert response == expected_response
     assert len(caplog.messages) == 1
     assert "no specified response schema available for statusCode 418" in caplog.text

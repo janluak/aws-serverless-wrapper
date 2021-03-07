@@ -5,7 +5,8 @@
     "requestContext": {
       "key1": "value1",
       "key2": "value2"
-    }
+    },
+    "Content-Type": "application/json"
   },
   "body": "{\"body_key1\": \"value1\", \"body_key2\": {\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}",
   "pathParameters": {
