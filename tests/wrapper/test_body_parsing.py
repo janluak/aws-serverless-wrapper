@@ -39,6 +39,14 @@ def test_dump_json():
     assert application_json(test_data) == dumps(test_data)
 
 
+def test_dump_json_list():
+    from json import dumps
+    from aws_serverless_wrapper.wrapper._body_parsing import application_json
+    test_data = [{"key1": "value1"}]
+
+    assert application_json(test_data) == dumps(test_data)
+
+
 def test_load_json():
     from json import dumps
     from aws_serverless_wrapper.wrapper._body_parsing import application_json

@@ -27,7 +27,7 @@ def application_json(data):
                     "headers": {"Content-Type": "text/plain"},
                 }
             )
-    elif isinstance(data, dict):
+    else:
         from json import dumps
         return dumps(data)
 
