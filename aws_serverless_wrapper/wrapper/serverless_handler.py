@@ -84,36 +84,24 @@ class __LambdaHandler(ABC):
         if "abstract class" in exc.args[0]:
             raise exc
 
-        from aws_environ_helper import log_exception
+        if environ["ERROR_LOG"]["API_RESPONSE"]:
+            from aws_environ_helper import log_exception
 
-        error_log_item = log_exception(exc, self.request_data, self.context)
-
-        if "statusCode" in exc.args[0]:
-            response = {"statusCode": 200}
-
-            basic_body_message = "internally captured error"
-
-        else:
-            basic_body_message = "internal server error"
-
-            response = {
+            return {
                 "statusCode": 500,
-                "body": basic_body_message,
-                "headers": {"Content-Type": "text/plain"},
+                "headers": {"Content-Type": "application/json"},
+                "body": {
+                    "basic": "internal server error",
+                    "error_log_item": log_exception(exc, self.request_data, self.context),
+                }
             }
 
-        if environ["ERROR_LOG"]["API_RESPONSE"]:
-            response.update(
-                {
-                    "headers": {"Content-Type": "application/json"},
-                    "body": {
-                        "basic": basic_body_message,
-                        "error_log_item": error_log_item,
-                    },
-                }
-            )
-
-        return response
+        else:
+            return {
+                "statusCode": 500,
+                "body": "internal server error",
+                "headers": {"Content-Type": "text/plain"},
+            }
 
     def wrap_lambda(self, event, context) -> dict:
         METRICS["container_reusing_count"] += 1
@@ -124,11 +112,14 @@ class __LambdaHandler(ABC):
             return parse_body(bad_input_response)
 
         try:
-
             if response := self.run():
                 self.output_verification(response)
             else:
                 response = {"statusCode": 200}
+        except NotImplementedError as e:
+            from aws_environ_helper import log_exception
+            log_exception(e, self.request_data, self.context)
+            response = e.args[0]
         except Exception as e:
             response = self._log_error(e)
 

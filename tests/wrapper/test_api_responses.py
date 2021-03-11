@@ -148,7 +148,11 @@ def test_exception_with_raised_status_code(run_from_file_directory):
 
     response = LambdaHandlerOfClass(RaiseExpectedException).wrap_lambda(event, context)
 
-    assert response == {"statusCode": 200}
+    assert response == {
+        "statusCode": 500,
+        "body": "internal server error",
+        "headers": {"Content-Type": "text/plain"}
+    }
 
 
 def test_nested_api_resource(run_from_file_directory):
@@ -184,9 +188,9 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
     response["body"] = loads(response["body"])
 
     assert response == {
-        "statusCode": 200,
+        "statusCode": 500,
         "body": {
-            "basic": "internally captured error",
+            "basic": "internal server error",
             "error_log_item": {
                 "body": "item in db not found",
                 "lambda_name": "test_function",
