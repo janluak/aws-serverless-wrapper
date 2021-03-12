@@ -40,7 +40,7 @@ def content_type_switch(content_type: str):
 
 
 def parse_body(event_or_response):
-    if "body" not in event_or_response:
+    if "body" not in event_or_response or not event_or_response["body"]:
         return event_or_response
 
     content_type = None

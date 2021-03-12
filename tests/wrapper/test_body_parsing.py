@@ -82,3 +82,13 @@ def test_select_application_json_dumping():
 
     assert parse_body(test_data) == expected_item
 
+
+def test_select_empty_body():
+    from json import dumps
+    from aws_serverless_wrapper.wrapper._body_parsing import parse_body
+    test_data = {
+        "body": dict(),
+        "headers": dict()
+    }
+
+    assert parse_body(test_data) == test_data
