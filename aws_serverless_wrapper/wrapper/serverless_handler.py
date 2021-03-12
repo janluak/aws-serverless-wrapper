@@ -48,7 +48,7 @@ class __LambdaHandler(ABC):
                 self.request_data = APIDataValidator(
                     self.request_data, self.api_name, **{origin_type: origin_value},
                 ).data
-        except (OSError, TypeError, ValidationError) as e:
+        except (OSError, TypeError, ValidationError, ValueError) as e:
             from aws_environ_helper import log_api_validation_error
 
             error_log_item = log_api_validation_error(e, self.request_data, self.context)

@@ -92,3 +92,10 @@ def test_select_empty_body():
     }
 
     assert parse_body(test_data) == test_data
+
+    test_data = {
+        "body": None,
+        "headers": dict()
+    }
+
+    assert parse_body(test_data) == test_data
