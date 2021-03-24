@@ -99,3 +99,20 @@ def test_select_empty_body():
     }
 
     assert parse_body(test_data) == test_data
+
+
+def test_unknown_content_type(caplog):
+    from aws_serverless_wrapper.wrapper._body_parsing import parse_body
+    test_data = {
+        "body": {"key1": "value1"},
+        "headers": {"content-type": "x-custom/unsupported"}
+    }
+
+    with raises(NotImplementedError) as NE:
+        parse_body(test_data)
+
+    assert NE.value.args[0] == {
+                "statusCode": 501,
+                "body": "parsing of Content-Type 'x-custom/unsupported' not implemented",
+                "headers": {"Content-Type": "text/plain"}
+            }

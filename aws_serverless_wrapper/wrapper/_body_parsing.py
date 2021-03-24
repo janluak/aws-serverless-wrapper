@@ -32,25 +32,31 @@ def application_json(data):
         return dumps(data)
 
 
-def content_type_switch(content_type: str):
-    if content_type == "text/plain":
-        return text_plain
-    elif content_type == "application/json":
-        return application_json
+ContentTypeSwitch = {
+    "text/plain": text_plain,
+    "application/json": application_json
+}
 
 
 def parse_body(event_or_response):
     if "body" not in event_or_response or not event_or_response["body"] or event_or_response["body"] is None:
         return event_or_response
 
-    content_type = None
     if "headers" in event_or_response and "content-type" in event_or_response["headers"]:
         content_type = event_or_response["headers"]["content-type"]
     elif "headers" in event_or_response and "Content-Type" in event_or_response["headers"]:
         content_type = event_or_response["headers"]["Content-Type"]
-
-    if content_type is None:
+    else:
         raise ValueError("Content-Type must either be defined by header in event or by parameter")
 
-    event_or_response["body"] = content_type_switch(content_type)(event_or_response["body"])
+    try:
+        event_or_response["body"] = ContentTypeSwitch[content_type](event_or_response["body"])
+    except KeyError as KE:
+        raise NotImplementedError(
+            {
+                "statusCode": 501,
+                "body": f"parsing of Content-Type {KE} not implemented",
+                "headers": {"Content-Type": "text/plain"}
+            }
+        )
     return event_or_response
