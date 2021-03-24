@@ -38,6 +38,21 @@
       "description": "only used for flagging a test and not running in actual productive code",
       "type": "boolean"
     },
+    "parse_body": {
+      "description": "if parsing the body for request and response shall be done (handles both)",
+      "type": "boolean",
+      "default": true
+    },
+    "parse_request_body": {
+      "description": "if parsing the body for request shall be done",
+      "type": "boolean",
+      "default": true
+    },
+    "parse_response_body": {
+      "description": "if parsing the body for response shall be done",
+      "type": "boolean",
+      "default": true
+    },
     "with_context": {
       "description": "if the aws context shall be passed on into the function",
       "type": "boolean",

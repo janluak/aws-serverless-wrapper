@@ -45,8 +45,6 @@ class __LambdaHandler(ABC):
 
     def input_verification(self) -> (None, dict):
         try:
-            self.request_data = parse_body(self.request_data)
-
             if environ["API_INPUT_VERIFICATION"]:
                 from aws_schema import APIDataValidator
 
@@ -65,8 +63,12 @@ class __LambdaHandler(ABC):
                 return e.args[0]
 
             else:
+                try:
+                    statusCode = e.args[0]["statusCode"]
+                except (KeyError, TypeError):
+                    statusCode = 400
                 return {
-                    "statusCode": e.args[0]["statusCode"],
+                    "statusCode": statusCode,
                     "body": {
                         "basic": e.args[0]["body"],
                         "error_log_item": error_log_item,
@@ -123,16 +125,19 @@ class __LambdaHandler(ABC):
             # else:
             #     charset = "utf-8"
 
-        self.request_data = event
-        self.context = context
-        if bad_input_response := self.input_verification():
-            return parse_body(bad_input_response)
-
         try:
-            if response := self.run():
-                self.output_verification(response)
+            if environ["parse_body"] and environ["parse_request_body"]:
+                event = parse_body(event)
+
+            self.request_data = event
+            self.context = context
+            if response := self.input_verification():
+                pass
             else:
-                response = {"statusCode": 200}
+                if response := self.run():
+                    self.output_verification(response)
+                else:
+                    response = {"statusCode": 200}
         except NotImplementedError as e:
             from aws_environ_helper import log_exception
             log_exception(e, self.request_data, self.context)
@@ -140,7 +145,15 @@ class __LambdaHandler(ABC):
         except Exception as e:
             response = self._log_error(e)
 
-        return parse_body(response)
+        if environ["parse_body"] and environ["parse_response_body"]:
+            try:
+                response = parse_body(response)
+            except NotImplementedError as e:
+                from aws_environ_helper import log_exception
+                log_exception(e, self.request_data, self.context)
+                response = e.args[0]
+
+        return response
 
 
 class LambdaHandlerOfClass(__LambdaHandler):
