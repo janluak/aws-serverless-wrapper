@@ -30,6 +30,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     # https://pypi.org/pypi?%3Aaction=list_classifiers
+    include_package_data=True,
     install_requires=["boto3", "jsonschema"],
     extra_require={"testing": ["pytest", "datesy", "moto", "freezegun"]},
 )

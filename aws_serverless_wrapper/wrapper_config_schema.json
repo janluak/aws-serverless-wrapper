@@ -38,6 +38,11 @@
       "description": "only used for flagging a test and not running in actual productive code",
       "type": "boolean"
     },
+    "with_context": {
+      "description": "if the aws context shall be passed on into the function",
+      "type": "boolean",
+      "default": false
+    },
     "WRAPPER_DATABASE": {
       "description": "if databases are used by the wrapper configuration is set here",
       "type": "object",

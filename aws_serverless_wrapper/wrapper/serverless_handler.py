@@ -5,7 +5,11 @@ from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
 from ._body_parsing import parse_body
+from json import load
+from os.path import dirname, realpath
 
+with open(f"{dirname(realpath(__file__))}/../wrapper_config_schema.json", "r") as wrapper_config_schema:
+    environ.set_schema(load(wrapper_config_schema))
 
 __all__ = ["LambdaHandlerOfClass", "LambdaHandlerOfFunction"]
 
@@ -20,11 +24,15 @@ except KeyError:
 
 class __LambdaHandler(ABC):
     def __init__(
-        self, business_handler: (ServerlessBaseClass.__subclasses__(), FunctionType)
+        self, business_handler: (ServerlessBaseClass.__subclasses__(), FunctionType),
+        **config
     ):
         self.business_handler = business_handler
         self.request_data = None
         self.context = None
+
+        if config:
+            environ.set_keys(config)
 
     @abstractmethod
     def run(self):
@@ -160,4 +168,7 @@ class LambdaHandlerOfFunction(__LambdaHandler):
             return self.business_handler.__name__
 
     def run(self):
-        return self.business_handler(self.request_data)
+        if not environ["with_context"]:
+            return self.business_handler(self.request_data)
+        else:
+            return self.business_handler(self.request_data, self.context)

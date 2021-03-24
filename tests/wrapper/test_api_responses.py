@@ -184,7 +184,7 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
-    response = LambdaHandlerOfClass(RaiseExpectedException).wrap_lambda(event, context)
+    response = LambdaHandlerOfClass(RaiseExpectedException, with_context=True).wrap_lambda(event, context)
     response["body"] = loads(response["body"])
 
     assert response == {

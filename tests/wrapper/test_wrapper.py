@@ -98,6 +98,8 @@ def test_class_wrong_base_class(run_from_file_directory):
             def main(self):
                 pass
 
+        api_basic()
+
         assert (
             te.value.args[0]
             == f"if given a class it must derive from aws_serverless_wrapper.{ServerlessBaseClass.__name__}"
@@ -123,7 +125,6 @@ def test_class_base_class_missing_handler(run_from_file_directory):
         )
 
 
-@mark.skip("not implemented")
 def test_function_with_context(run_from_file_directory):
     from aws_serverless_wrapper import aws_serverless_wrapper
 
@@ -131,7 +132,7 @@ def test_function_with_context(run_from_file_directory):
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
-    @aws_serverless_wrapper(context=True)
+    @aws_serverless_wrapper(with_context=True)
     def api_basic(event_data, context_data):
         assert event_data == event
         assert context_data == context
