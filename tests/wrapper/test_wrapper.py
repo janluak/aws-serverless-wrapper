@@ -138,3 +138,20 @@ def test_function_with_context(run_from_file_directory):
 
     response = api_basic(event, context)
     assert response["statusCode"] == 200
+
+
+def test_wrapper_with_charset_utf8_content_type(run_from_file_directory):
+    from aws_serverless_wrapper import aws_serverless_wrapper
+
+    environ._load_config_from_file("api_response_wrapper_config.json")
+
+    event = load_single(f"../schema_validation/test_data/api/request_basic.json")
+
+    event["headers"]["Content-Type"] += "; charset=utf-8"
+
+    @aws_serverless_wrapper
+    def api_basic(event_data):
+        assert event_data == event
+
+    response = api_basic(event, context)
+    assert response["statusCode"] == 200

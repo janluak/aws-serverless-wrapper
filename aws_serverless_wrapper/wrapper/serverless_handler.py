@@ -106,6 +106,15 @@ class __LambdaHandler(ABC):
     def wrap_lambda(self, event, context) -> dict:
         METRICS["container_reusing_count"] += 1
 
+        if "headers" in event:
+            event["headers"] = {k.lower(): v for k, v in event["headers"].items()}
+
+        if "headers" in event and "content-type" in event["headers"]:
+            if ";" in event["headers"]["content-type"]:
+                event["headers"]["content-type"], charset = event["headers"]["content-type"].split(";")
+            # else:
+            #     charset = "utf-8"
+
         self.request_data = event
         self.context = context
         if bad_input_response := self.input_verification():
