@@ -83,15 +83,8 @@ def test_select_application_json_dumping():
     assert parse_body(test_data) == expected_item
 
 
-def test_select_empty_body():
-    from json import dumps
+def test_none_body_from_aws_request_data():
     from aws_serverless_wrapper.wrapper._body_parsing import parse_body
-    test_data = {
-        "body": dict(),
-        "headers": dict()
-    }
-
-    assert parse_body(test_data) == test_data
 
     test_data = {
         "body": None,
@@ -116,3 +109,18 @@ def test_unknown_content_type(caplog):
                 "body": "parsing of Content-Type 'x-custom/unsupported' not implemented",
                 "headers": {"Content-Type": "text/plain"}
             }
+
+
+def test_empty_list(caplog):
+    from aws_serverless_wrapper.wrapper._body_parsing import parse_body
+
+    test_data = {
+        "body": [],
+        "headers": {"content-type": "application/json"}
+    }
+
+    response = parse_body(test_data)
+    assert response == {
+        "body": "[]",
+        "headers": {"content-type": "application/json"}
+    }
