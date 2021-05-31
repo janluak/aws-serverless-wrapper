@@ -2,7 +2,7 @@ from aws_environ_helper.testing import fake_context as context
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from aws_environ_helper.environ_variables import environ
-from aws_serverless_wrapper.wrapper.base_class import ServerlessBaseClass
+from aws_serverless_wrapper.base_class import ServerlessBaseClass
 from pytest import fixture
 from fil_io.json import load_single
 from json import loads
@@ -18,7 +18,7 @@ def run_from_file_directory():
 
 def test_basic_function_run_through(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -35,7 +35,7 @@ def test_function_occurring_exception(run_from_file_directory):
         raise Exception("test")
 
     environ._load_config_from_file("api_response_wrapper_config.json")
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -58,7 +58,7 @@ def test_function_occurring_exception_with_error_log(run_from_file_directory):
 
     environ["ERROR_LOG"] = {"API_RESPONSE": True}
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -95,7 +95,7 @@ def test_basic_class_run_through(run_from_file_directory):
             pass
 
     environ._load_config_from_file("api_response_wrapper_config.json")
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
     response = LambdaHandlerOfClass(api_basic).wrap_lambda(event, context)
@@ -111,7 +111,7 @@ def test_different_named_class_run_through(run_from_file_directory):
     environ["API_INPUT_VERIFICATION"][
         "SCHEMA_DIRECTORY"
     ] = "../schema_validation/test_data/api/test_request_resource||{path_level1}||{path_level2}.json"
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
     response = LambdaHandlerOfClass(EventHandler).wrap_lambda(event, context)
@@ -129,7 +129,7 @@ def test_different_named_class_run_through_schema_with_http_method(
     environ["API_INPUT_VERIFICATION"][
         "SCHEMA_DIRECTORY"
     ] = "../schema_validation/test_data/api/test_request_resource||{path_level1}||{path_level2}-POST.json"
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
     response = LambdaHandlerOfClass(EventHandler).wrap_lambda(event, context)
@@ -148,7 +148,7 @@ def test_different_named_class_with_api_name_run_through(run_from_file_directory
     environ["API_INPUT_VERIFICATION"][
         "SCHEMA_DIRECTORY"
     ] = "../schema_validation/test_data/api/"
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
     response = LambdaHandlerOfClass(EventHandler).wrap_lambda(event, context)
@@ -161,7 +161,7 @@ def test_class_occurring_exception(run_from_file_directory):
             raise Exception("test")
 
     environ._load_config_from_file("api_response_wrapper_config.json")
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
@@ -183,7 +183,7 @@ def test_class_occurring_exception_with_error_log(run_from_file_directory):
 
     environ["ERROR_LOG"] = {"API_RESPONSE": True}
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 

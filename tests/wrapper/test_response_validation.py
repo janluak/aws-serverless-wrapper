@@ -29,7 +29,7 @@ def response_validation_env():
 
 
 def test_200_single_string(response_validation_env, caplog):
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -50,7 +50,7 @@ def test_200_single_string(response_validation_env, caplog):
 
 
 def test_200_false_single_string(response_validation_env, caplog):
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -72,7 +72,7 @@ def test_200_false_single_string(response_validation_env, caplog):
 
 
 def test_unspecified_status_code_response(response_validation_env, caplog):
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -97,7 +97,7 @@ def test_200_single_string_with_internal_server_error_configured(
     response_validation_env, caplog
 ):
     environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"] = True
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -123,7 +123,7 @@ def test_200_false_single_string_with_internal_server_error(
 ):
     environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"] = True
     environ["ERROR_LOG"] = {"API_RESPONSE": True}
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -177,7 +177,7 @@ def test_unspecified_status_code_with_being_transparent_to_client(
 ):
     environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"] = True
     environ["ERROR_LOG"] = {"API_RESPONSE": True}
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 

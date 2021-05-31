@@ -8,7 +8,7 @@ from ._body_parsing import parse_body
 from json import load
 from os.path import dirname, realpath
 
-with open(f"{dirname(realpath(__file__))}/../wrapper_config_schema.json", "r") as wrapper_config_schema:
+with open(f"{dirname(realpath(__file__))}/wrapper_config_schema.json", "r") as wrapper_config_schema:
     environ.set_schema(load(wrapper_config_schema))
 
 __all__ = ["LambdaHandlerOfClass", "LambdaHandlerOfFunction"]

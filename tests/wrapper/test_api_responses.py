@@ -44,7 +44,7 @@ def run_from_file_directory():
 def test_wrong_method(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -65,7 +65,7 @@ def test_wrong_method_with_error_response(run_from_file_directory):
 
     environ["API_INPUT_VERIFICATION"]["LOG_ERRORS"]["API_RESPONSE"] = True
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -96,7 +96,7 @@ def test_wrong_method_with_error_response(run_from_file_directory):
 def test_missing_headers(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -114,7 +114,7 @@ def test_missing_headers(run_from_file_directory):
 def test_wrong_body(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -142,7 +142,7 @@ def test_wrong_body(run_from_file_directory):
 def test_exception_with_raised_status_code(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
@@ -158,7 +158,7 @@ def test_exception_with_raised_status_code(run_from_file_directory):
 def test_nested_api_resource(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import (
+    from aws_serverless_wrapper.serverless_handler import (
         LambdaHandlerOfFunction,
     )
 
@@ -180,7 +180,7 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
 
     environ["ERROR_LOG"] = NoExceptDict({"API_RESPONSE": True})
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
@@ -210,7 +210,7 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
 def test_unexpected_exception(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    from aws_serverless_wrapper.wrapper.serverless_handler import LambdaHandlerOfClass
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
 
     event = load_single(f"../schema_validation/test_data/api/request_basic.json")
 
