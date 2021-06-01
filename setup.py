@@ -17,6 +17,7 @@ setup(
     description="decorator for speeding up aws serverless development & separating business from infrastructure code",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    url="https://github.com/janluak/aws-serverless-wrapper",
     author="Jan Lukas Braje",
     author_email="aws-serverless-wrapper@getkahawa.com",
     packages=find_packages(),
