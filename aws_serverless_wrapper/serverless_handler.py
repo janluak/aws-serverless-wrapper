@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from .base_class import ServerlessBaseClass
-from aws_environ_helper import environ
+from ._environ_variables import environ
 from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
@@ -55,7 +55,7 @@ class __LambdaHandler(ABC):
                     self.request_data, self.api_name, **{origin_type: origin_value},
                 ).data
         except (OSError, TypeError, ValidationError, ValueError) as e:
-            from aws_environ_helper import log_api_validation_error
+            from .error_logging import log_api_validation_error
 
             error_log_item = log_api_validation_error(e, self.request_data, self.context)
 
@@ -87,6 +87,7 @@ class __LambdaHandler(ABC):
                 response,
                 httpMethod=self.request_data["httpMethod"],
                 api_name=self.api_name,
+                return_error_in_response=environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"],
                 **{origin_type: origin_value},
             )
 
@@ -95,7 +96,7 @@ class __LambdaHandler(ABC):
             raise exc
 
         if environ["ERROR_LOG"]["API_RESPONSE"]:
-            from aws_environ_helper import log_exception
+            from .error_logging import log_exception
 
             return {
                 "statusCode": 500,
@@ -139,7 +140,7 @@ class __LambdaHandler(ABC):
                 else:
                     response = {"statusCode": 200}
         except NotImplementedError as e:
-            from aws_environ_helper import log_exception
+            from .error_logging import log_exception
             log_exception(e, self.request_data, self.context)
             response = e.args[0]
         except Exception as e:
@@ -149,7 +150,7 @@ class __LambdaHandler(ABC):
             try:
                 response = parse_body(response)
             except NotImplementedError as e:
-                from aws_environ_helper import log_exception
+                from .error_logging import log_exception
                 log_exception(e, self.request_data, self.context)
                 response = e.args[0]
 

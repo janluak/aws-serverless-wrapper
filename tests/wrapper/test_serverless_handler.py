@@ -1,7 +1,7 @@
-from aws_environ_helper.testing import fake_context as context
 from os.path import dirname, realpath
 from os import chdir, getcwd
-from aws_environ_helper.environ_variables import environ
+from aws_serverless_wrapper.testing import fake_context as context
+from aws_serverless_wrapper._environ_variables import environ
 from aws_serverless_wrapper.base_class import ServerlessBaseClass
 from pytest import fixture
 from fil_io.json import load_single

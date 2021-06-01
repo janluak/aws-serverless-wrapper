@@ -1,11 +1,11 @@
-from aws_environ_helper.testing import fake_context as context, compose_ReST_event
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from freezegun import freeze_time
 from pytest import fixture
 from fil_io.json import load_single
-from aws_environ_helper import environ
+from aws_serverless_wrapper._environ_variables import environ
 from aws_serverless_wrapper import ServerlessBaseClass
+from aws_serverless_wrapper.testing import fake_context as context, compose_ReST_event
 from json import loads
 
 
@@ -176,7 +176,7 @@ def test_nested_api_resource(run_from_file_directory):
 @freeze_time("2020-01-01")
 def test_expected_exception_and_return_api_response(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
-    from aws_environ_helper.environ_variables import NoExceptDict
+    from aws_serverless_wrapper._environ_variables import NoExceptDict
 
     environ["ERROR_LOG"] = NoExceptDict({"API_RESPONSE": True})
 

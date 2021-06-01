@@ -141,18 +141,6 @@
     }
   },
   "definitions": {
-    "constants": {
-      "type": "object",
-      "properties": {
-        "available_noSQL_databases": {
-          "description": "which noSQL database shall be used",
-          "type": "string",
-          "enum": [
-            "DynamoDB"
-          ]
-        }
-      }
-    },
     "schemas": {
       "type": "object",
       "properties": {

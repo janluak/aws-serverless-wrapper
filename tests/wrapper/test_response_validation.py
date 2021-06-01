@@ -1,9 +1,9 @@
-from aws_environ_helper.testing import fake_context, compose_ReST_event
+from aws_serverless_wrapper.testing import fake_context, compose_ReST_event
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from pytest import fixture
 from freezegun import freeze_time
-from aws_environ_helper import environ
+from aws_serverless_wrapper._environ_variables import environ
 from json import loads
 
 
