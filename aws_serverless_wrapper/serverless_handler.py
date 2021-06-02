@@ -122,13 +122,13 @@ class __LambdaHandler(ABC):
 
         if "headers" in event and "content-type" in event["headers"]:
             if ";" in event["headers"]["content-type"]:
-                event["headers"]["content-type"], charset = event["headers"]["content-type"].split(";")
-            # else:
-            #     charset = "utf-8"
+                event["headers"]["content-type"], encoding = event["headers"]["content-type"].split(";")
+            else:
+                encoding = "utf-8"
 
         try:
             if environ["parse_body"] and environ["parse_request_body"]:
-                event = parse_body(event)
+                event = parse_body(event, encoding)
 
             self.request_data = event
             self.context = context

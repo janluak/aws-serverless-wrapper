@@ -124,3 +124,53 @@ def test_empty_list(caplog):
         "body": "[]",
         "headers": {"content-type": "application/json"}
     }
+
+
+def test_application_x_www_form_urlencoded():
+    from aws_serverless_wrapper._body_parsing import application_x_www_form_urlencoded
+
+    test_string = "Key1=Value1&Key2=Value2"
+    test_dict = {"Key1": "Value1", "Key2": "Value2"}
+
+    assert application_x_www_form_urlencoded(test_string) == {k: [v] for k, v in test_dict.items()}
+    assert application_x_www_form_urlencoded(test_dict) == test_string
+
+    test_string = "Key1=Value1&Key2=Value2&DoubleKey=1&DoubleKey=2"
+    test_dict = {"Key1": "Value1", "Key2": "Value2", "DoubleKey": ["1", "2"]}
+
+    assert application_x_www_form_urlencoded(test_string) == {
+        'DoubleKey': ['1', '2'], 'Key1': ['Value1'], 'Key2': ['Value2']
+    }
+    assert application_x_www_form_urlencoded(test_dict) == "Key1=Value1&Key2=Value2&DoubleKey=%5B%271%27%2C+%272%27%5D"
+
+
+def test_application_x_www_form_urlencoded_with_charset():
+    from aws_serverless_wrapper._body_parsing import application_x_www_form_urlencoded
+
+    test_string = "Key1=Value1&Key2=Value2"
+    test_dict = {"Key1": "Value1", "Key2": "Value2"}
+
+    assert application_x_www_form_urlencoded(test_string, "utf-8") == {k: [v] for k, v in test_dict.items()}
+
+    from aws_serverless_wrapper._body_parsing import parse_body
+
+    test_requrest = {"headers": {"Content-Type": "application/x-www-form-urlencoded"}, "body": test_string}
+    assert parse_body(test_requrest) == {
+        "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+        "body": {k: [v] for k, v in test_dict.items()}
+    }
+
+
+def test_application_x_www_form_urlencoded_erors():
+    from aws_serverless_wrapper._body_parsing import application_x_www_form_urlencoded
+
+    test_string = "abc"
+
+    with raises(TypeError) as TE:
+        application_x_www_form_urlencoded(test_string)
+
+    assert TE.value.args[0] == {
+        "statusCode": 400,
+        "body": "Body has to be x-www-form-urlencoded formatted",
+        "headers": {"Content-Type": "text/plain"}
+    }
