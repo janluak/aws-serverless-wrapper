@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from .base_class import ServerlessBaseClass
 from ._environ_variables import environ
@@ -5,7 +6,7 @@ from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
 from ._body_parsing import parse_body
-from json import load
+from json import load, dumps
 from os.path import dirname, realpath
 
 with open(f"{dirname(realpath(__file__))}/wrapper_config_schema.json", "r") as wrapper_config_schema:
@@ -116,6 +117,8 @@ class __LambdaHandler(ABC):
 
     def wrap_lambda(self, event, context) -> dict:
         METRICS["container_reusing_count"] += 1
+        if environ["LOG_RAW_EVENT"]:
+            logging.info(f"raw event: {event}")
 
         if "headers" in event:
             event["headers"] = {k.lower(): v for k, v in event["headers"].items()}
@@ -128,6 +131,8 @@ class __LambdaHandler(ABC):
         try:
             if environ["parse_body"] and environ["parse_request_body"]:
                 event = parse_body(event, encoding)
+                if environ["LOG_PARSED_EVENT"]:
+                    logging.info(f"parsed event: {dumps(event)}")
 
             self.request_data = event
             self.context = context
@@ -146,6 +151,8 @@ class __LambdaHandler(ABC):
             response = self._log_error(e)
 
         if environ["parse_body"] and environ["parse_response_body"]:
+            if environ["LOG_PRE_PARSED_RESPONSE"]:
+                logging.info(f"pre parsed response: {dumps(response)}")
             try:
                 response = parse_body(response)
             except NotImplementedError as e:
@@ -153,6 +160,8 @@ class __LambdaHandler(ABC):
                 log_exception(e, self.request_data, self.context)
                 response = e.args[0]
 
+        if environ["LOG_RAW_RESPONSE"]:
+            logging.info(f"raw response: {dumps(response)}")
         return response
 
 

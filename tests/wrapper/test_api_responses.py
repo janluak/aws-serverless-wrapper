@@ -1,12 +1,13 @@
+import logging
 from os.path import dirname, realpath
 from os import chdir, getcwd
 from freezegun import freeze_time
-from pytest import fixture
+from pytest import fixture, mark, raises
 from fil_io.json import load_single
 from aws_serverless_wrapper._environ_variables import environ
 from aws_serverless_wrapper import ServerlessBaseClass
 from aws_serverless_wrapper.testing import fake_context as context, compose_ReST_event
-from json import loads
+from json import loads, dumps
 
 
 def api_basic(event):
@@ -223,3 +224,72 @@ def test_unexpected_exception(run_from_file_directory):
         "body": "internal server error",
         "headers": {"Content-Type": "text/plain"},
     }
+
+
+test_body = {"body_key1": "some_string", "body_key2": {"sub_key1": "abc", "sub_key2": 34}}
+
+
+@mark.parametrize(
+    ("log_config", "expected_part_in_logging", "stated_log_level"),
+    (
+            ({"LOG_RAW_EVENT": True, "API_RESPONSE_VERIFICATION": False}, f": '{dumps(test_body)}'", "INFO"),
+            ({"LOG_PARSED_EVENT": True, "API_RESPONSE_VERIFICATION": False}, f": {dumps(test_body)}", "INFO"),
+            ({"LOG_PRE_PARSED_RESPONSE": True, "API_RESPONSE_VERIFICATION": False}, f": {dumps(test_body)}", "INFO"),
+            ({"LOG_RAW_RESPONSE": True, "API_RESPONSE_VERIFICATION": False}, '"body": "{\\"', "INFO"),
+    )
+)
+def test_logging_of_event_and_response(run_from_file_directory, caplog, log_config, expected_part_in_logging,
+                                       stated_log_level):
+    environ._load_config_from_file("api_response_wrapper_config.json")
+    caplog.set_level(logging.INFO)
+    from aws_serverless_wrapper.serverless_handler import (
+        LambdaHandlerOfFunction,
+    )
+
+    def returning_api(_):
+        return {
+            "statusCode": 200,
+            "body": test_body,
+            "headers": {"Content-Type": "application/json"}
+        }
+
+    event = compose_ReST_event(
+        httpMethod="POST",
+        resource="/test_request_resource/{path_level1}/{path_level2}",
+        pathParameters={"path_level1": "path_value1", "path_level2": "path_value2"},
+        body=test_body
+    )
+
+    response = LambdaHandlerOfFunction(returning_api, **log_config).wrap_lambda(event.copy(), context)
+
+    assert len(caplog.messages) == 1
+    assert expected_part_in_logging in caplog.text
+    assert caplog.text.startswith(stated_log_level)
+    assert response["statusCode"] == 200
+
+
+@mark.parametrize(
+    "log_config",
+    (
+            {"LOG_PARSED_EVENT": True, "parse_body": False},
+            {"LOG_PARSED_EVENT": True, "parse_request_body": False},
+            {"LOG_PRE_PARSED_RESPONSE": True, "parse_body": False},
+            {"LOG_PRE_PARSED_RESPONSE": True, "parse_response_body": False},
+    )
+)
+def test_invalid_logging_config(run_from_file_directory, caplog, log_config):
+    environ._load_config_from_file("api_response_wrapper_config.json")
+    from aws_serverless_wrapper.serverless_handler import (
+        LambdaHandlerOfFunction,
+    )
+
+    event = compose_ReST_event(
+        httpMethod="POST",
+        resource="/test_request_resource/{path_level1}/{path_level2}",
+        pathParameters={"path_level1": "path_value1", "path_level2": "path_value2"},
+        body=test_body
+    )
+
+    from jsonschema.exceptions import ValidationError
+    with raises(ValidationError):
+        LambdaHandlerOfFunction(api_basic, **log_config).wrap_lambda(event.copy(), context)

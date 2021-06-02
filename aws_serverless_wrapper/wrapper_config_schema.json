@@ -38,6 +38,26 @@
       "description": "only used for flagging a test and not running in actual productive code",
       "type": "boolean"
     },
+    "LOG_RAW_EVENT": {
+      "description": "log the raw input as provided by AWS",
+      "type": "boolean",
+      "default": false
+    },
+    "LOG_PARSED_EVENT": {
+      "description": "log the parsed input as provided to the wrapped function",
+      "type": "boolean",
+      "default": false
+    },
+    "LOG_PRE_PARSED_RESPONSE": {
+      "description": "log the response as it was returned by the wrapped function",
+      "type": "boolean",
+      "default": false
+    },
+    "LOG_RAW_RESPONSE": {
+      "description": "log the response as it gets returned from AWS to client",
+      "type": "boolean",
+      "default": false
+    },
     "parse_body": {
       "description": "if parsing the body for request and response shall be done (handles both)",
       "type": "boolean",
@@ -176,6 +196,28 @@
           }
         }
       ]
+    }
+  },
+  "dependencies": {
+    "LOG_PARSED_EVENT": {
+      "properties": {
+        "parse_body": {
+          "const": true
+        },
+        "parse_request_body": {
+          "const": true
+        }
+      }
+    },
+    "LOG_PRE_PARSED_RESPONSE": {
+      "properties": {
+        "parse_body": {
+          "const": true
+        },
+        "parse_response_body": {
+          "const": true
+        }
+      }
     }
   }
 }
