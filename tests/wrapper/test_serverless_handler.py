@@ -45,13 +45,13 @@ def test_basic_function_run_through_no_verification(run_from_file_directory, cap
     event["body"] = "wrong_body"
     assert LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)["statusCode"] != 200
     assert len(caplog.messages) == 0
-    assert LambdaHandlerOfFunction(api_basic, parse_body=False, API_INPUT_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
+    assert LambdaHandlerOfFunction(api_basic, PARSE_BODY=False, API_INPUT_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
     assert len(caplog.messages) == 1
     assert "no specified response schema available" in caplog.text
     caplog.clear()
     environ._load_config_from_file("api_response_wrapper_config.json")
 
-    assert LambdaHandlerOfFunction(api_basic, parse_body=False, API_INPUT_VERIFICATION=False, API_RESPONSE_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
+    assert LambdaHandlerOfFunction(api_basic, PARSE_BODY=False, API_INPUT_VERIFICATION=False, API_RESPONSE_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
     assert len(caplog.messages) == 0
 
 

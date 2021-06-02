@@ -1,7 +1,7 @@
 {
-  "parse_body": true,
-  "parse_request_body": true,
-  "parse_response_body": true,
+  "PARSE_BODY": true,
+  "PARSE_REQUEST_BODY": true,
+  "PARSE_RESPONSE_BODY": true,
   "API_INPUT_VERIFICATION": {
     "SCHEMA_ORIGIN": "file",
     "SCHEMA_DIRECTORY": "../schema_validation/test_data/api/",

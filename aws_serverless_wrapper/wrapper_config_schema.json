@@ -58,17 +58,17 @@
       "type": "boolean",
       "default": false
     },
-    "parse_body": {
+    "PARSE_BODY": {
       "description": "if parsing the body for request and response shall be done (handles both)",
       "type": "boolean",
       "default": true
     },
-    "parse_request_body": {
+    "PARSE_REQUEST_BODY": {
       "description": "if parsing the body for request shall be done",
       "type": "boolean",
       "default": true
     },
-    "parse_response_body": {
+    "PARSE_RESPONSE_BODY": {
       "description": "if parsing the body for response shall be done",
       "type": "boolean",
       "default": true
@@ -201,20 +201,20 @@
   "dependencies": {
     "LOG_PARSED_EVENT": {
       "properties": {
-        "parse_body": {
+        "PARSE_BODY": {
           "const": true
         },
-        "parse_request_body": {
+        "PARSE_REQUEST_BODY": {
           "const": true
         }
       }
     },
     "LOG_PRE_PARSED_RESPONSE": {
       "properties": {
-        "parse_body": {
+        "PARSE_BODY": {
           "const": true
         },
-        "parse_response_body": {
+        "PARSE_RESPONSE_BODY": {
           "const": true
         }
       }

@@ -129,7 +129,7 @@ class __LambdaHandler(ABC):
                 event["headers"]["content-type"], encoding = event["headers"]["content-type"].split(";")
 
         try:
-            if environ["parse_body"] and environ["parse_request_body"]:
+            if environ["PARSE_BODY"] and environ["PARSE_REQUEST_BODY"]:
                 event = parse_body(event, encoding)
                 if environ["LOG_PARSED_EVENT"]:
                     logging.info(f"parsed event: {dumps(event)}")
@@ -150,7 +150,7 @@ class __LambdaHandler(ABC):
         except Exception as e:
             response = self._log_error(e)
 
-        if environ["parse_body"] and environ["parse_response_body"]:
+        if environ["PARSE_BODY"] and environ["PARSE_REQUEST_BODY"]:
             if environ["LOG_PRE_PARSED_RESPONSE"]:
                 logging.info(f"pre parsed response: {dumps(response)}")
             try:
