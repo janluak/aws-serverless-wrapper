@@ -77,7 +77,7 @@ class Environ:
     def __getitem__(self, key):
         if key not in required_environ_keys:
             try:
-                if value := self.__config[key]:
+                if (value := self.__config[key]) != NoExceptDict():
                     return value
                 else:
                     return self.__fallback(key)

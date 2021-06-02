@@ -30,6 +30,31 @@ def test_basic_function_run_through(run_from_file_directory):
     LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)
 
 
+def test_basic_function_run_through_no_verification(run_from_file_directory, caplog):
+    environ._load_config_from_file("api_response_wrapper_config.json")
+    from aws_serverless_wrapper.serverless_handler import (
+        LambdaHandlerOfFunction,
+    )
+
+    event = load_single(f"../schema_validation/test_data/api/request_basic.json")
+
+    def api_basic(event_data):
+        assert event_data == event
+        return {"statusCode": 200, "body": "Faulty Data", "headers": {"Content-Type": "text/plain"}}
+
+    event["body"] = "wrong_body"
+    assert LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)["statusCode"] != 200
+    assert len(caplog.messages) == 0
+    assert LambdaHandlerOfFunction(api_basic, parse_body=False, API_INPUT_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
+    assert len(caplog.messages) == 1
+    assert "no specified response schema available" in caplog.text
+    caplog.clear()
+    environ._load_config_from_file("api_response_wrapper_config.json")
+
+    assert LambdaHandlerOfFunction(api_basic, parse_body=False, API_INPUT_VERIFICATION=False, API_RESPONSE_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
+    assert len(caplog.messages) == 0
+
+
 def test_function_occurring_exception(run_from_file_directory):
     def api_basic():
         raise Exception("test")

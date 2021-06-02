@@ -60,38 +60,58 @@
     },
     "API_INPUT_VERIFICATION": {
       "description": "if input verification from API call shall be considered (e.g. for ReST calls)",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "SCHEMA_ORIGIN": {
-          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "SCHEMA_ORIGIN": {
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
+            },
+            "SCHEMA_DIRECTORY": {
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
+            },
+            "LOG_ERRORS": {
+              "description": "if failed validations shall be logged",
+              "$ref": "wrapper_config_schema.json#/definitions/error_log_config"
+            }
+          }
         },
-        "SCHEMA_DIRECTORY": {
-          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
-        },
-        "LOG_ERRORS": {
-          "description": "if failed validations shall be logged",
-          "$ref": "wrapper_config_schema.json#/definitions/error_log_config"
+        {
+          "type": "boolean",
+          "enum": [
+            false
+          ]
         }
-      }
+      ]
     },
     "API_RESPONSE_VERIFICATION": {
       "description": "if the response from API call shall be checked for fitting response schema (e.g. for ensuring returning correct data)",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "SCHEMA_ORIGIN": {
-          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "SCHEMA_ORIGIN": {
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
+            },
+            "SCHEMA_DIRECTORY": {
+              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
+            },
+            "RETURN_INTERNAL_SERVER_ERROR": {
+              "description": "if set to true, a missing  (4xx and 5xx statusCodes are excluded and will always be returned)",
+              "type": "boolean",
+              "default": false
+            }
+          }
         },
-        "SCHEMA_DIRECTORY": {
-          "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
-        },
-        "RETURN_INTERNAL_SERVER_ERROR": {
-          "description": "if set to true, a missing  (4xx and 5xx statusCodes are excluded and will always be returned)",
+        {
           "type": "boolean",
-          "default": false
+          "enum": [
+            false
+          ]
         }
-      }
+      ]
     },
     "ERROR_LOG": {
       "description": "how shall internal errors be logged?",
