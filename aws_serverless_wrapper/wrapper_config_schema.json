@@ -58,48 +58,6 @@
       "type": "boolean",
       "default": false
     },
-    "WRAPPER_DATABASE": {
-      "description": "if databases are used by the wrapper configuration is set here",
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "noSQL": {
-          "description": "if a noSQL database shall be configured",
-          "type": "object",
-          "properties": {
-            "MODEL": {
-              "$ref": "wrapper_config_schema.json#/definitions/constants/properties/available_noSQL_databases"
-            },
-            "SCHEMA_ORIGIN": {
-              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/origin"
-            },
-            "SCHEMA_DIRECTORY": {
-              "$ref": "wrapper_config_schema.json#/definitions/schemas/properties/directory"
-            },
-            "RESOURCE_CONFIG": {
-              "description": "optional special configuration of the noSQL resource as specified by AWS",
-              "type": "object"
-            },
-            "CACHED_TABLES": {
-              "description": "provide the names of tables to use the cache on\n(which have an external hash to verify if data has changed, see examples on how to use it)",
-              "type": "array",
-              "items": [
-                {
-                  "type": "string"
-                }
-              ]
-            }
-          },
-          "required": [
-            "MODEL"
-          ],
-          "dependencies": {
-            "SCHEMA_ORIGIN": ["SCHEMA_DIRECTORY"],
-            "SCHEMA_DIRECTORY": ["SCHEMA_ORIGIN"]
-          }
-        }
-      }
-    },
     "API_INPUT_VERIFICATION": {
       "description": "if input verification from API call shall be considered (e.g. for ReST calls)",
       "type": "object",
