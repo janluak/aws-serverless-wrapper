@@ -120,11 +120,10 @@ class __LambdaHandler(ABC):
         if "headers" in event:
             event["headers"] = {k.lower(): v for k, v in event["headers"].items()}
 
+        encoding = "utf-8"
         if "headers" in event and "content-type" in event["headers"]:
             if ";" in event["headers"]["content-type"]:
                 event["headers"]["content-type"], encoding = event["headers"]["content-type"].split(";")
-            else:
-                encoding = "utf-8"
 
         try:
             if environ["parse_body"] and environ["parse_request_body"]:
