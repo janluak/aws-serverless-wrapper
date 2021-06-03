@@ -5,7 +5,7 @@ from ._environ_variables import environ
 from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
-from ._body_parsing import parse_body
+from ._body_parsing import parse_body, ParsingError
 from json import load, dumps
 from os.path import dirname, realpath
 
@@ -117,6 +117,7 @@ class __LambdaHandler(ABC):
 
     def wrap_lambda(self, event, context) -> dict:
         METRICS["container_reusing_count"] += 1
+        self.context = context
         if environ["LOG_RAW_EVENT"]:
             logging.info(f"raw event: {event}")
 
@@ -127,6 +128,7 @@ class __LambdaHandler(ABC):
         if "headers" in event and "content-type" in event["headers"]:
             if ";" in event["headers"]["content-type"]:
                 event["headers"]["content-type"], encoding = event["headers"]["content-type"].split(";")
+                encoding = encoding.split("=")[-1]
 
         try:
             if environ["PARSE_BODY"] and environ["PARSE_REQUEST_BODY"]:
@@ -135,7 +137,6 @@ class __LambdaHandler(ABC):
                     logging.info(f"parsed event: {dumps(event)}")
 
             self.request_data = event
-            self.context = context
             if response := self.input_verification():
                 pass
             else:
@@ -143,14 +144,15 @@ class __LambdaHandler(ABC):
                     self.output_verification(response)
                 else:
                     response = {"statusCode": 200}
-        except NotImplementedError as e:
-            from .error_logging import log_exception
-            log_exception(e, self.request_data, self.context)
+        except (ParsingError, NotImplementedError) as e:
+            if isinstance(e, NotImplementedError):
+                from .error_logging import log_exception
+                log_exception(e, self.request_data, self.context)
             response = e.args[0]
         except Exception as e:
             response = self._log_error(e)
 
-        if environ["PARSE_BODY"] and environ["PARSE_REQUEST_BODY"]:
+        if environ["PARSE_BODY"] and environ["PARSE_RESPONSE_BODY"]:
             if environ["LOG_PRE_PARSED_RESPONSE"]:
                 logging.info(f"pre parsed response: {dumps(response)}")
             try:

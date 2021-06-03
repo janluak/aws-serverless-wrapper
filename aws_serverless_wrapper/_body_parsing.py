@@ -1,10 +1,14 @@
 
-__all__ = ["parse_body"]
+__all__ = ["parse_body", "ParsingError"]
+
+
+class ParsingError(ValueError):
+    pass
 
 
 def text_plain(data, _=None):
     if not isinstance(data, str):
-        raise TypeError(
+        raise ParsingError(
             {
                 "statusCode": 400,
                 "body": "Body has to be plain text",
@@ -20,7 +24,7 @@ def application_json(data, _=None):
         try:
             return loads(data)
         except (JSONDecodeError, TypeError):
-            raise TypeError(
+            raise ParsingError(
                 {
                     "statusCode": 400,
                     "body": "Body has to be json formatted",
@@ -44,7 +48,7 @@ def application_x_www_form_urlencoded(data, encoding="utf-8"):
             from urllib.parse import urlencode
             return urlencode(data, encoding=encoding)
     except TypeError:
-        raise TypeError(
+        raise ParsingError(
             {
                 "statusCode": 400,
                 "body": "Body has to be x-www-form-urlencoded formatted",
@@ -69,7 +73,7 @@ def parse_body(event_or_response, encoding="utf-8"):
     elif "headers" in event_or_response and "Content-Type" in event_or_response["headers"]:
         content_type = event_or_response["headers"]["Content-Type"]
     else:
-        raise ValueError("Content-Type must either be defined by header in event or by parameter")
+        raise ParsingError("Content-Type must either be defined by header in event or by parameter")
 
     encoding = encoding.lower()
     try:

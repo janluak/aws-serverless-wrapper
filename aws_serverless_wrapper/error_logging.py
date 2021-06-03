@@ -68,24 +68,24 @@ def _log_error(exception, config, event_data, context, message=None):
     error_log_item = _create_error_log_item(
         context=context,
         exception=exception,
-        event_data=event_data if config["LOG_EVENT_DATA"] else None,
+        event_data=event_data if config.get("LOG_EVENT_DATA", None) else None,
         message=message,
     )
 
     logger.exception(error_log_item)
 
-    if config["QUEUE"]:
+    if config.get("QUEUE", None):
         pass
-    if config["DATABASE"]:
-        if log_table_name := config["DATABASE"]["noSQL"]:
+    if config.get("DATABASE", None):
+        if log_table_name := config["DATABASE"].get("noSQL", None):
             from dynamo_db_resource import database_resource
 
             database_resource[log_table_name].put(error_log_item)
 
-        if log_table_name := config["DATABASE"]["SQL"]:
+        if log_table_name := config["DATABASE"].get("SQL", None):
             raise NotImplementedError
 
-    if config["API_RESPONSE"]:
+    if config.get("API_RESPONSE", None):
         return error_log_item
 
 

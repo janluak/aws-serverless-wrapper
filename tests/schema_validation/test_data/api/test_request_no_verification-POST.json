@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Basic API",
+  "description": "Some basic template for describing an API",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "httpMethod": {
+      "description": "the ReST method(s) type allowed for this API",
+      "type": "string",
+      "const": "POST"
+    },
+    "headers": {
+      "description": "request header",
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "isBase64Encoded": {
+          "description": "e.g. allow only not encoded requests",
+          "type": "boolean",
+          "const": false
+        },
+        "requestContext": {
+          "description": "if you want to make sure, the requestContext was provided",
+          "type": "object"
+        }
+      },
+      "required": [
+      ]
+    }
+  },
+  "required": [
+    "headers"
+  ]
+}

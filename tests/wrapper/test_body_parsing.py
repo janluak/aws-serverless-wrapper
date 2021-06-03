@@ -1,5 +1,8 @@
-from pytest import raises
+from pytest import raises, mark
 from copy import deepcopy
+from .test_api_responses import run_from_file_directory
+from aws_serverless_wrapper.testing import compose_ReST_event, fake_context
+from aws_serverless_wrapper._body_parsing import ParsingError
 
 
 def test_text_plain():
@@ -11,14 +14,14 @@ def test_text_plain():
 def test_text_plain_false_input():
     from aws_serverless_wrapper._body_parsing import text_plain
     test_data = 1234
-    with raises(TypeError) as e:
+    with raises(ParsingError) as e:
         text_plain(test_data)
 
     assert e.value.args[0] == {
-            "statusCode": 400,
-            "body": "Body has to be plain text",
-            "headers": {"Content-Type": "text/plain"},
-        }
+        "statusCode": 400,
+        "body": "Body has to be plain text",
+        "headers": {"Content-Type": "text/plain"},
+    }
 
 
 def test_select_text_plain():
@@ -59,14 +62,14 @@ def test_load_json_exception():
     from aws_serverless_wrapper._body_parsing import application_json
     test_data = '{"key1": "value1"'
 
-    with raises(TypeError) as e:
+    with raises(ParsingError) as e:
         application_json(test_data)
 
     assert e.value.args[0] == {
-            "statusCode": 400,
-            "body": "Body has to be json formatted",
-            "headers": {"Content-Type": "text/plain"},
-        }
+        "statusCode": 400,
+        "body": "Body has to be json formatted",
+        "headers": {"Content-Type": "text/plain"},
+    }
 
 
 def test_select_application_json_dumping():
@@ -105,10 +108,10 @@ def test_unknown_content_type(caplog):
         parse_body(test_data)
 
     assert NE.value.args[0] == {
-                "statusCode": 501,
-                "body": "parsing of Content-Type 'x-custom/unsupported' not implemented",
-                "headers": {"Content-Type": "text/plain"}
-            }
+        "statusCode": 501,
+        "body": "parsing of Content-Type 'x-custom/unsupported' not implemented",
+        "headers": {"Content-Type": "text/plain"}
+    }
 
 
 def test_empty_list(caplog):
@@ -166,7 +169,7 @@ def test_application_x_www_form_urlencoded_erors():
 
     test_string = "abc"
 
-    with raises(TypeError) as TE:
+    with raises(ParsingError) as TE:
         application_x_www_form_urlencoded(test_string)
 
     assert TE.value.args[0] == {
@@ -174,3 +177,50 @@ def test_application_x_www_form_urlencoded_erors():
         "body": "Body has to be x-www-form-urlencoded formatted",
         "headers": {"Content-Type": "text/plain"}
     }
+
+
+@mark.parametrize(
+    ("parse_config", "response_components", "event_body", "return_body", "raised_exception"),
+    (
+            (dict(), {"statusCode": 200},
+             "{\"body_key1\": \"value1\", \"body_key2\": "
+             "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}",
+             {"key": "value"}, None),
+            (dict(), {"statusCode": 400, "body": "Body has to be json formatted"}, "some string body", {"key": "value"}, None),
+            ({"PARSE_REQUEST_BODY": False}, {"statusCode": 200}, "some string body", {"key": "value"}, None),
+            ({"PARSE_BODY": False}, {"statusCode": 200}, "some string body", {"key": "value"}, None),
+            (dict(), {"statusCode": 400}, "{\"body_key1\": \"value1\", \"body_key2\": "
+             "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}", "some string body", ParsingError),
+            ({"PARSE_RESPONSE_BODY": False}, {"statusCode": 200}, "{\"body_key1\": \"value1\", \"body_key2\": "
+             "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}", "some string body", None),
+            ({"PARSE_BODY": False}, {"statusCode": 200}, "{\"body_key1\": \"value1\", \"body_key2\": "
+             "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}", "some string body", None)
+    )
+)
+def test_parsing_config(caplog, run_from_file_directory, parse_config, response_components, event_body, return_body, raised_exception):
+    def test_func(_):
+        return {
+            "statusCode": 200,
+            "body": return_body,
+            "headers": {"Content-Type": "application/json"}
+        }
+
+    from aws_serverless_wrapper._environ_variables import environ
+    environ._load_config_from_file("api_response_wrapper_config.json")
+
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfFunction
+
+    event = compose_ReST_event(
+        httpMethod="POST",
+        resource="/test_request_no_verification",
+        header={"Content-Type": "application/json"}
+    )
+    event["body"] = event_body
+
+    if not raised_exception:
+        response = LambdaHandlerOfFunction(test_func, **parse_config).wrap_lambda(event, fake_context)
+        for key in response_components:
+            assert response[key] == response_components[key]
+    else:
+        with raises(raised_exception):
+            LambdaHandlerOfFunction(test_func, **parse_config).wrap_lambda(event, fake_context)
