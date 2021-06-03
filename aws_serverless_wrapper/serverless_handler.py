@@ -131,7 +131,7 @@ class __LambdaHandler(ABC):
                 encoding = encoding.split("=")[-1]
 
         try:
-            if environ["PARSE_BODY"] and environ["PARSE_REQUEST_BODY"]:
+            if environ["PARSE_BODY"] and environ["PARSE_EVENT_BODY"]:
                 event = parse_body(event, encoding)
                 if environ["LOG_PARSED_EVENT"]:
                     logging.info(f"parsed event: {dumps(event)}")

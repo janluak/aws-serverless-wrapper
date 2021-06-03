@@ -187,7 +187,7 @@ def test_application_x_www_form_urlencoded_erors():
              "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}",
              {"key": "value"}, None),
             (dict(), {"statusCode": 400, "body": "Body has to be json formatted"}, "some string body", {"key": "value"}, None),
-            ({"PARSE_REQUEST_BODY": False}, {"statusCode": 200}, "some string body", {"key": "value"}, None),
+            ({"PARSE_EVENT_BODY": False}, {"statusCode": 200}, "some string body", {"key": "value"}, None),
             ({"PARSE_BODY": False}, {"statusCode": 200}, "some string body", {"key": "value"}, None),
             (dict(), {"statusCode": 400}, "{\"body_key1\": \"value1\", \"body_key2\": "
              "{\"sub_body_key2.1\": \"value1\", \"sub_body_key2.2\": \"value2\"}}", "some string body", ParsingError),

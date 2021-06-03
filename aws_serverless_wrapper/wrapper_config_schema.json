@@ -63,7 +63,7 @@
       "type": "boolean",
       "default": true
     },
-    "PARSE_REQUEST_BODY": {
+    "PARSE_EVENT_BODY": {
       "description": "if parsing the body for request shall be done",
       "type": "boolean",
       "default": true
@@ -204,7 +204,7 @@
         "PARSE_BODY": {
           "const": true
         },
-        "PARSE_REQUEST_BODY": {
+        "PARSE_EVENT_BODY": {
           "const": true
         }
       }

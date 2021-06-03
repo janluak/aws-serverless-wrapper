@@ -271,10 +271,10 @@ def test_logging_of_event_and_response(run_from_file_directory, caplog, log_conf
 @mark.parametrize(
     "log_config",
     (
-            {"LOG_PARSED_EVENT": True, "parse_body": False},
-            {"LOG_PARSED_EVENT": True, "parse_request_body": False},
-            {"LOG_PRE_PARSED_RESPONSE": True, "parse_body": False},
-            {"LOG_PRE_PARSED_RESPONSE": True, "parse_response_body": False},
+            {"LOG_PARSED_EVENT": True, "PARSE_BODY": False},
+            {"LOG_PARSED_EVENT": True, "PARSE_EVENT_BODY": False},
+            {"LOG_PRE_PARSED_RESPONSE": True, "PARSE_BODY": False},
+            {"LOG_PRE_PARSED_RESPONSE": True, "PARSE_RESPONSE_BODY": False},
     )
 )
 def test_invalid_logging_config(run_from_file_directory, caplog, log_config):
