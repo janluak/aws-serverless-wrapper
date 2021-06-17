@@ -1,4 +1,4 @@
-from pytest import raises
+from pytest import raises, mark
 
 
 def test_simple_json_event():
@@ -36,6 +36,33 @@ def test_simple_string_body_event():
     }
     composed_event = compose_ReST_event(
         httpMethod="POST", resource="/api_name", body="abc def ghi"
+    )
+
+    assert composed_event == expected_event
+
+
+@mark.parametrize(
+    "ct",
+    ("content-type", "Content-Type")
+)
+def test_string_body_event_with_specified_headers(ct):
+    from aws_serverless_wrapper.testing import compose_ReST_event
+
+    expected_event = {
+        "body": "abc=def",
+        "headers": {ct: "application/x-www-form-urlencoded"},
+        "httpMethod": "POST",
+        "multiValueQueryStringParameters": {},
+        "path": "/api_name",
+        "pathParameters": {},
+        "requestContext": {},
+        "resource": "/api_name",
+    }
+    composed_event = compose_ReST_event(
+        httpMethod="POST",
+        resource="/api_name",
+        body="abc=def",
+        header={ct: "application/x-www-form-urlencoded"}
     )
 
     assert composed_event == expected_event

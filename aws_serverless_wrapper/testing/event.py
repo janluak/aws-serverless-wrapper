@@ -73,12 +73,16 @@ def compose_ReST_event(
         else dict(),
         "requestContext": requestContext if requestContext else dict(),
     }
+
+    casted_content_type = "text/plain"
     if isinstance(body, str):
         event.update({"body": body})
-        event["headers"].update({"Content-Type": "text/plain"})
     elif isinstance(body, dict):
         event.update({"body": dumps(body)})
-        event["headers"].update({"Content-Type": "application/json"})
+        casted_content_type = "application/json"
+
+    if not any("content-type" == i.lower() for i in event["headers"]):
+        event["headers"].update({"Content-Type": casted_content_type})
     
     if cognito:
         if "authorizer" not in event["requestContext"]:
