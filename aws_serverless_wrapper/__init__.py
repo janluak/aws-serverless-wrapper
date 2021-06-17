@@ -1,4 +1,4 @@
-__versions__ = "0.1.4"
+__versions__ = "0.1.5"
 
 from .wrapper import aws_serverless_wrapper
 from .base_class import ServerlessBaseClass

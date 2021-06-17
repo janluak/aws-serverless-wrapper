@@ -52,7 +52,7 @@ __all__ = ["compose_ReST_event"]
 def compose_ReST_event(
     httpMethod,
     resource,
-    header=None,
+    headers=None,
     body=None,
     pathParameters=None,
     queryParameters=None,
@@ -65,7 +65,7 @@ def compose_ReST_event(
     event = {
         "resource": resource,
         "httpMethod": httpMethod,
-        "headers": header if header else dict(),
+        "headers": headers if headers else dict(),
         "path": resource.format(**pathParameters),
         "pathParameters": pathParameters,
         "multiValueQueryStringParameters": queryParameters

@@ -62,7 +62,7 @@ def test_string_body_event_with_specified_headers(ct):
         httpMethod="POST",
         resource="/api_name",
         body="abc=def",
-        header={ct: "application/x-www-form-urlencoded"}
+        headers={ct: "application/x-www-form-urlencoded"}
     )
 
     assert composed_event == expected_event
