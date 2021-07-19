@@ -213,7 +213,7 @@ def test_parsing_config(caplog, run_from_file_directory, parse_config, response_
     event = compose_ReST_event(
         httpMethod="POST",
         resource="/test_request_no_verification",
-        header={"Content-Type": "application/json"}
+        headers={"Content-Type": "application/json"}
     )
     event["body"] = event_body
 
