@@ -151,7 +151,7 @@ def test_cognito_auth_event():
         resource="/api_name/{variable1}",
         pathParameters={"variable1": "value1"},
         body={"abc": "def"},
-        cognito={
+        cognito_claims={
             "sub": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "email": "some_mail@test.com",
             "auth_time": "1615730814",

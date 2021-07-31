@@ -57,7 +57,7 @@ def compose_ReST_event(
     pathParameters=None,
     queryParameters=None,
     requestContext=None,
-    cognito=None,
+    cognito_claims=None,
 ):
     if pathParameters is None:
         pathParameters = dict()
@@ -82,14 +82,14 @@ def compose_ReST_event(
             event.update({"body": dumps(body)})
             casted_content_type = "application/json"
 
-    if not any("content-type" == i.lower() for i in event["headers"]):
-        event["headers"].update({"Content-Type": casted_content_type})
+        if not any("content-type" == i.lower() for i in event["headers"]):
+            event["headers"].update({"Content-Type": casted_content_type})
     
-    if cognito:
+    if cognito_claims:
         if "authorizer" not in event["requestContext"]:
-            event["requestContext"].update({"authorizer": {"claims": cognito}})
+            event["requestContext"].update({"authorizer": {"claims": cognito_claims}})
         else:
-            event["requestContext"]["authorizer"].update({"claims": cognito})
+            event["requestContext"]["authorizer"].update({"claims": cognito_claims})
             
 
     SchemaValidator(raw=__event_schema).validate(event)
