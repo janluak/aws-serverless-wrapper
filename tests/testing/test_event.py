@@ -1,6 +1,25 @@
 from pytest import raises, mark
 
 
+def test_event_without_body():
+    from aws_serverless_wrapper.testing import compose_ReST_event
+
+    expected_event = {
+        "httpMethod": "GET",
+        "path": "/api_name",
+        "headers": dict(),
+        "multiValueQueryStringParameters": dict(),
+        "pathParameters": dict(),
+        "requestContext": dict(),
+        "resource": "/api_name",
+    }
+    composed_event = compose_ReST_event(
+        "GET",
+        "/api_name"
+    )
+    assert composed_event == expected_event
+
+
 def test_simple_json_event():
     from aws_serverless_wrapper.testing import compose_ReST_event
 

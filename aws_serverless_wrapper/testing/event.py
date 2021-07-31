@@ -74,12 +74,13 @@ def compose_ReST_event(
         "requestContext": requestContext if requestContext else dict(),
     }
 
-    casted_content_type = "text/plain"
-    if isinstance(body, str):
-        event.update({"body": body})
-    elif isinstance(body, dict):
-        event.update({"body": dumps(body)})
-        casted_content_type = "application/json"
+    if body is not None:
+        casted_content_type = "text/plain"
+        if isinstance(body, str):
+            event.update({"body": body})
+        elif isinstance(body, dict):
+            event.update({"body": dumps(body)})
+            casted_content_type = "application/json"
 
     if not any("content-type" == i.lower() for i in event["headers"]):
         event["headers"].update({"Content-Type": casted_content_type})
