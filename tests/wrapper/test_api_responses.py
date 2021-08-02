@@ -77,9 +77,8 @@ def test_wrong_method_with_error_response(run_from_file_directory):
     assert response == {
         "statusCode": 501,
         "body": {
-            "basic": "API is not defined",
-            "error_log_item": {
-                "body": "API is not defined",
+            "error": "API is not defined",
+            "error_log": {
                 "lambda_name": "test_function",
                 "service_name": "group",
                 "function_version": "$LATEST",
@@ -140,7 +139,7 @@ def test_wrong_body(run_from_file_directory):
     }
 
 
-def test_exception_with_raised_status_code(run_from_file_directory):
+def test_exception_with_raised_return_data(run_from_file_directory):
     environ._load_config_from_file("api_response_wrapper_config.json")
 
     from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfClass
@@ -150,8 +149,8 @@ def test_exception_with_raised_status_code(run_from_file_directory):
     response = LambdaHandlerOfClass(RaiseExpectedException).wrap_lambda(event, context)
 
     assert response == {
-        "statusCode": 500,
-        "body": "internal server error",
+        "statusCode": 404,
+        "body": "item in db not found",
         "headers": {"Content-Type": "text/plain"}
     }
 
@@ -189,11 +188,10 @@ def test_expected_exception_and_return_api_response(run_from_file_directory):
     response["body"] = loads(response["body"])
 
     assert response == {
-        "statusCode": 500,
+        "statusCode": 404,
         "body": {
-            "basic": "internal server error",
-            "error_log_item": {
-                "body": "item in db not found",
+            "error": "item in db not found",
+            "error_log": {
                 "lambda_name": "test_function",
                 "service_name": "group",
                 "function_version": "$LATEST",
@@ -222,6 +220,41 @@ def test_unexpected_exception(run_from_file_directory):
     assert response == {
         "statusCode": 500,
         "body": "internal server error",
+        "headers": {"Content-Type": "text/plain"},
+    }
+
+
+# @mark.skip
+@mark.parametrize(
+    "all_lower",
+    (True, False)
+)
+@mark.parametrize(
+    ("raised_exception_text", "statusCode", "expected_body"),
+    (
+        ("Unauthorized", 401, "Unauthorized"),
+        ("Payment", 402, "Payment Required"),
+        ("Forbidden", 403, "Forbidden"),
+        (401, 401, "Unauthorized"),
+        (402, 402, "Payment Required"),
+        (403, 403, "Forbidden"),
+    )
+)
+def test_unauthorized_exception(run_from_file_directory, raised_exception_text, statusCode, all_lower, expected_body):
+    environ._load_config_from_file("api_response_wrapper_config.json")
+
+    from aws_serverless_wrapper.serverless_handler import LambdaHandlerOfFunction
+
+    event = load_single(f"../schema_validation/test_data/api/request_basic.json")
+
+    def exception_function(_):
+        raise Exception(raised_exception_text.lower() if (all_lower and isinstance(raised_exception_text, str)) else raised_exception_text)
+
+    response = LambdaHandlerOfFunction(exception_function).wrap_lambda(event.copy(), context)
+
+    assert response == {
+        "statusCode": statusCode,
+        "body": expected_body,
         "headers": {"Content-Type": "text/plain"},
     }
 

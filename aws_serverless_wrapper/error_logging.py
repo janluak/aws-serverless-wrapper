@@ -1,10 +1,12 @@
 from ._environ_variables import environ
 import logging
+from requests.status_codes import _codes, codes
+from json import dumps
 
 logger = logging.getLogger(__name__)
 
 
-__all__ = ["log_exception", "log_api_validation_error"]
+__all__ = ["handle_exception", "log_exception", "log_api_validation_error"]
 
 
 def _create_error_log_item(
@@ -25,8 +27,9 @@ def _create_error_log_item(
     }
 
     if exception:
-        if "statusCode" in exception.args[0]:
-            item.update(exception.args[0])
+        exception_data = exception.args[0]
+        if isinstance(exception_data, dict) and "statusCode" in exception_data:
+            item.update(exception_data)
         else:
             from traceback import format_exc
 
@@ -64,7 +67,7 @@ def _create_error_log_item(
     return item
 
 
-def _log_error(exception, config, event_data, context, message=None):
+def _log_error(exception, status_code, config, event_data, context, message=None):
     error_log_item = _create_error_log_item(
         context=context,
         exception=exception,
@@ -72,7 +75,10 @@ def _log_error(exception, config, event_data, context, message=None):
         message=message,
     )
 
-    logger.exception(error_log_item)
+    if status_code is None or status_code >= 500:
+        logger.exception(dumps(error_log_item))
+    elif status_code >= 400:
+        logger.warning(dumps(error_log_item))
 
     if config.get("QUEUE", None):
         pass
@@ -86,16 +92,67 @@ def _log_error(exception, config, event_data, context, message=None):
             raise NotImplementedError
 
     if config.get("API_RESPONSE", None):
+        error_log_item.pop("body", None)
+        error_log_item.pop("message", None)
         return error_log_item
 
 
 def log_api_validation_error(validation_exception, event_data, context):
     relevant_environ = environ["API_INPUT_VERIFICATION"]["LOG_ERRORS"]
+    return _log_error(validation_exception, 501, relevant_environ, event_data, context)
 
-    return _log_error(validation_exception, relevant_environ, event_data, context)
 
-
-def log_exception(exception, event_data, context, message=None):
+def log_exception(exception, event_data, context, status_code=None, message=None):
     relevant_environ = environ["ERROR_LOG"]
+    return _log_error(exception, status_code, relevant_environ, event_data, context, message)
 
-    return _log_error(exception, relevant_environ, event_data, context, message)
+
+def handle_exception(handler, exc):
+    exception_data = exc.args[0]
+    status_code = 500
+    body = "internal server error"
+    headers = {"Content-Type": "text/plain"}
+    if isinstance(exception_data, dict):
+        status_code = exception_data.get("statusCode", status_code)
+        body = exception_data.get("body", body)
+
+    elif isinstance(exception_data, int):
+        status_code = exception_data
+        body = " ".join(i.capitalize() for i in _codes[exception_data][0].split("_"))
+
+    elif "abstract class" in exception_data:
+        raise exc
+
+    else:
+        if casted_code := codes["_".join(exception_data.split(" ")).lower()]:
+            status_code = casted_code
+            body = " ".join(i.capitalize() for i in _codes[status_code][0].split("_"))
+
+    if environ["API_INPUT_VERIFICATION"]["LOG_ERRORS"]["API_RESPONSE"] and status_code == 501 and "API" in body:
+        if error_log_item := log_api_validation_error(exc, handler.request_data, handler.context):
+            headers = {"Content-Type": "application/json"}
+            body = {
+                "error": body,
+                "error_log": error_log_item
+            }
+
+    else:
+        error_log_item = log_exception(
+            exc,
+            handler.request_data,
+            handler.context,
+            status_code,
+            body if not (isinstance(exception_data, dict) and "body" in exception_data) else None
+        )
+        if environ["ERROR_LOG"]["API_RESPONSE"]:
+            headers = {"Content-Type": "application/json"}
+            body = {
+                "error": body,
+                "error_log": error_log_item
+            }
+
+    return {
+        "statusCode": status_code,
+        "body": body,
+        "headers": headers
+    }

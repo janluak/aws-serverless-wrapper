@@ -135,11 +135,7 @@ def test_200_false_single_string_with_internal_server_error(
 
     expected_response = {
         "body": {
-            "basic": "internal server error",
-            "error_log_item": {
-                "aws_log_group": "test/log/group",
-                "aws_request_id": "uuid",
-                "body": {
+            "error": {
                     "invalid response": {
                         "body": "not_allowed_answer",
                         "headers": {"Content-Type": "text/plain"},
@@ -154,11 +150,14 @@ def test_200_false_single_string_with_internal_server_error(
                     "is not of type "
                     "'object'\">]",
                 },
+            "error_log": {
+                "aws_log_group": "test/log/group",
+                "aws_request_id": "uuid",
                 "function_version": "$LATEST",
                 "lambda_name": "test_function",
                 "service_name": "group",
                 "statusCode": 500,
-                "timestamp": 1577836800,
+                "timestamp": 1577836800.0,
             },
         },
         "headers": {"Content-Type": "application/json"},
@@ -170,31 +169,3 @@ def test_200_false_single_string_with_internal_server_error(
     assert len(caplog.messages) == 1
     assert "invalid response" in caplog.text
 
-
-@freeze_time("2020-01-01")
-def test_unspecified_status_code_with_being_transparent_to_client(
-    response_validation_env, caplog
-):
-    environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"] = True
-    environ["ERROR_LOG"] = {"API_RESPONSE": True}
-    from aws_serverless_wrapper.serverless_handler import (
-        LambdaHandlerOfFunction,
-    )
-
-    event = compose_ReST_event(
-        httpMethod="POST",
-        resource="/test_response_resource",
-        body={"response_statusCode": 418, "response_body": "I'm a teapot"},
-    )
-
-    expected_response = {
-        "body": 'no specified response schema available for statusCode 418\n'
-                'response: {\'statusCode\': 418, '
-                '\'body\': "I\'m a teapot", \'headers\': {\'Content-Type\': \'text/plain\'}}',
-        "headers": {"Content-Type": "text/plain"},
-        "statusCode": 501,
-    }
-    response = LambdaHandlerOfFunction(response_test).wrap_lambda(event, fake_context)
-    assert response == expected_response
-    assert len(caplog.messages) == 1
-    assert "no specified response schema available for statusCode 418" in caplog.text

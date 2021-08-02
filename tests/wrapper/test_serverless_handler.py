@@ -44,9 +44,9 @@ def test_basic_function_run_through_no_verification(run_from_file_directory, cap
 
     event["body"] = "wrong_body"
     assert LambdaHandlerOfFunction(api_basic).wrap_lambda(event, context)["statusCode"] != 200
-    assert len(caplog.messages) == 0
-    assert LambdaHandlerOfFunction(api_basic, PARSE_BODY=False, API_INPUT_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
     assert len(caplog.messages) == 1
+    assert LambdaHandlerOfFunction(api_basic, PARSE_BODY=False, API_INPUT_VERIFICATION=False).wrap_lambda(event, context)["statusCode"] == 200
+    assert len(caplog.messages) == 2
     assert "no specified response schema available" in caplog.text
     caplog.clear()
     environ._load_config_from_file("api_response_wrapper_config.json")
@@ -76,7 +76,7 @@ def test_function_occurring_exception(run_from_file_directory):
 
 
 def test_function_occurring_exception_with_error_log(run_from_file_directory):
-    def api_basic():
+    def api_basic(_):
         raise Exception("test")
 
     environ._load_config_from_file("api_response_wrapper_config.json")
@@ -95,10 +95,10 @@ def test_function_occurring_exception_with_error_log(run_from_file_directory):
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}
     assert len(response["body"]) == 2
-    assert len(response["body"]["error_log_item"]) == 12
+    assert len(response["body"]["error_log"]) == 12
 
-    assert response["body"]["basic"] == "internal server error"
-    assert set(response["body"]["error_log_item"].keys()) == {
+    assert response["body"]["error"] == "internal server error"
+    assert set(response["body"]["error_log"].keys()) == {
         "aws_request_id",
         "aws_log_group",
         "lambda_name",
@@ -218,10 +218,10 @@ def test_class_occurring_exception_with_error_log(run_from_file_directory):
     assert response["statusCode"] == 500
     assert response["headers"] == {"Content-Type": "application/json"}
     assert len(response["body"]) == 2
-    assert len(response["body"]["error_log_item"]) == 12
+    assert len(response["body"]["error_log"]) == 12
 
-    assert response["body"]["basic"] == "internal server error"
-    assert set(response["body"]["error_log_item"].keys()) == {
+    assert response["body"]["error"] == "internal server error"
+    assert set(response["body"]["error_log"].keys()) == {
         "aws_request_id",
         "aws_log_group",
         "lambda_name",

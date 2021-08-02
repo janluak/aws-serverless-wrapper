@@ -1,9 +1,10 @@
 from freezegun import freeze_time
 from testfixtures import LogCapture
 from os import path
+from json import dumps
 from aws_serverless_wrapper.testing.context import fake_context as context
 
-exception_line_no = 16
+exception_line_no = 17
 
 
 def raise_exception_with_http_status(code, body, content_type):
@@ -329,7 +330,7 @@ def test_log_exception_to_logging_no_event_data():
             (
                 "aws_serverless_wrapper.error_logging",
                 "ERROR",
-                str(reference_exception_log_item),
+                dumps(reference_exception_log_item),
             )
         )
 

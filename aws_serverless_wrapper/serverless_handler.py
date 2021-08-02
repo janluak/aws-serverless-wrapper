@@ -2,10 +2,9 @@ import logging
 from abc import ABC, abstractmethod
 from aws_serverless_wrapper.base_class import ServerlessBaseClass
 from aws_serverless_wrapper._environ_variables import environ
-from jsonschema.exceptions import ValidationError
 from datetime import datetime
 from types import FunctionType
-from aws_serverless_wrapper._body_parsing import parse_body, ParsingError
+from aws_serverless_wrapper._body_parsing import parse_body
 from json import load, dumps
 from os.path import dirname, realpath
 
@@ -45,37 +44,16 @@ class __LambdaHandler(ABC):
         return str()
 
     def input_verification(self) -> (None, dict):
-        try:
-            if environ["API_INPUT_VERIFICATION"]:
-                from aws_schema import APIDataValidator
+        if environ["API_INPUT_VERIFICATION"]:
+            from aws_schema import APIDataValidator
 
-                origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
-                origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
+            origin_type = environ["API_INPUT_VERIFICATION"]["SCHEMA_ORIGIN"]
+            origin_value = environ["API_INPUT_VERIFICATION"]["SCHEMA_DIRECTORY"]
 
-                self.request_data = APIDataValidator(
-                    self.request_data, self.api_name, **{origin_type: origin_value},
-                ).data
-        except (OSError, TypeError, ValidationError, ValueError) as e:
-            from .error_logging import log_api_validation_error
-
-            error_log_item = log_api_validation_error(e, self.request_data, self.context)
-
-            if not error_log_item:
-                return e.args[0]
-
-            else:
-                try:
-                    statusCode = e.args[0]["statusCode"]
-                except (KeyError, TypeError):
-                    statusCode = 400
-                return {
-                    "statusCode": statusCode,
-                    "body": {
-                        "basic": e.args[0]["body"],
-                        "error_log_item": error_log_item,
-                    },
-                    "headers": {"Content-Type": "application/json"},
-                }
+            self.request_data = APIDataValidator(
+                self.request_data, self.api_name, **{origin_type: origin_value},
+            ).data
+            # raise Not
 
     def output_verification(self, response):
         if environ["API_RESPONSE_VERIFICATION"]:
@@ -91,29 +69,6 @@ class __LambdaHandler(ABC):
                 return_error_in_response=environ["API_RESPONSE_VERIFICATION"]["RETURN_INTERNAL_SERVER_ERROR"],
                 **{origin_type: origin_value},
             )
-
-    def _log_error(self, exc):
-        if "abstract class" in exc.args[0]:
-            raise exc
-
-        if environ["ERROR_LOG"]["API_RESPONSE"]:
-            from .error_logging import log_exception
-
-            return {
-                "statusCode": 500,
-                "headers": {"Content-Type": "application/json"},
-                "body": {
-                    "basic": "internal server error",
-                    "error_log_item": log_exception(exc, self.request_data, self.context),
-                }
-            }
-
-        else:
-            return {
-                "statusCode": 500,
-                "body": "internal server error",
-                "headers": {"Content-Type": "text/plain"},
-            }
 
     def wrap_lambda(self, event, context) -> dict:
         METRICS["container_reusing_count"] += 1
@@ -138,20 +93,14 @@ class __LambdaHandler(ABC):
                     logging.info(f"parsed event: {dumps(event)}")
 
             self.request_data = event
-            if response := self.input_verification():
-                pass
+            self.input_verification()
+            if response := self.run():
+                self.output_verification(response)
             else:
-                if response := self.run():
-                    self.output_verification(response)
-                else:
-                    response = {"statusCode": 200}
-        except (ParsingError, NotImplementedError) as e:
-            if isinstance(e, NotImplementedError):
-                from .error_logging import log_exception
-                log_exception(e, self.request_data, self.context)
-            response = e.args[0]
+                response = {"statusCode": 200}
         except Exception as e:
-            response = self._log_error(e)
+            from .error_logging import handle_exception
+            response = handle_exception(self, e)
 
         if environ["PARSE_BODY"] and environ["PARSE_RESPONSE_BODY"]:
             if environ["LOG_PRE_PARSED_RESPONSE"]:
@@ -159,8 +108,8 @@ class __LambdaHandler(ABC):
             try:
                 response = parse_body(response)
             except NotImplementedError as e:
-                from .error_logging import log_exception
-                log_exception(e, self.request_data, self.context)
+                from .error_logging import log_api_validation_error
+                log_api_validation_error(e, self.request_data, self.context)
                 response = e.args[0]
 
         if environ["LOG_RAW_RESPONSE"]:
