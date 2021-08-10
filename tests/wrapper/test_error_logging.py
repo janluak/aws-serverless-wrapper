@@ -21,6 +21,10 @@ def raise_exception_within(exception_text):
     raise_exception(exception_text)
 
 
+def raise_empty_exception():
+    raise SystemError
+
+
 def delete_origin_paths_from_traceback(string):
     while string.find('"/') > 0:
         start_pos = string.find('"/') + 1
@@ -359,6 +363,21 @@ def test_log_exception_based_on_thrown_status_code_exception():
         actual_item = _create_error_log_item(context=context, exception=e)
 
         assert actual_item == reference_exception_log_item
+
+
+@freeze_time("2020-01-01")
+def test_log_empty_exception():
+    from aws_serverless_wrapper.error_logging import handle_exception
+    from aws_serverless_wrapper.testing import fake_context
+
+    class Handler:
+        request_data = dict()
+        context = fake_context
+
+    try:
+        raise_empty_exception()
+    except Exception as e:
+        handle_exception(Handler, e)
 
 
 from pytest import mark

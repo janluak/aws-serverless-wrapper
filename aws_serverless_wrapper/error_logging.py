@@ -27,7 +27,10 @@ def _create_error_log_item(
     }
 
     if exception:
-        exception_data = exception.args[0]
+        if exception.args:
+            exception_data = exception.args[0]
+        else:
+            exception_data = str()
         if isinstance(exception_data, dict) and "statusCode" in exception_data:
             item.update(exception_data)
         else:
@@ -38,7 +41,10 @@ def _create_error_log_item(
 
             raised_exception = tb[-1].split(":")
             raised_exception_type = raised_exception[0]
-            raised_exception_text = raised_exception[1][1:]
+            if len(raised_exception) > 1:
+                raised_exception_text = raised_exception[1][1:]
+            else:
+                raised_exception_text = str()
 
             raised_exception_call = calls[-2]
             raised_exception_file = raised_exception_call.split('"')[1:2][0]
@@ -108,7 +114,10 @@ def log_exception(exception, event_data, context, status_code=None, message=None
 
 
 def handle_exception(handler, exc):
-    exception_data = exc.args[0]
+    if exc.args:
+        exception_data = exc.args[0]
+    else:
+        exception_data = str()
     status_code = 500
     body = "internal server error"
     headers = {"Content-Type": "text/plain"}
